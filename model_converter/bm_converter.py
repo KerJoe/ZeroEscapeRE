@@ -7,12 +7,12 @@ def div_to_chunks(L, n):
     for i in range(0, len(L), n):
         yield L[i:i+n]
 
-def unpack_acc(format, buffer, offset: list[1]):
+def unpack_acc(format, buffer, offset: list[1]): # Use list[1] for mutable int
     output = struct.unpack_from(format, buffer, offset[0])
     offset[0] += struct.calcsize(format)
     return output[0] if len(output) == 1 else output
 
-def unpack_acc_list(format, buffer, offset: list[1], amount, data_class = None):
+def unpack_acc_list(format, buffer, offset: list[1], amount, data_class = None): # Use list[1] for mutable int
     output = []
     for _ in range(amount):
         if data_class:
@@ -21,101 +21,103 @@ def unpack_acc_list(format, buffer, offset: list[1], amount, data_class = None):
             output += [ unpack_acc(format, buffer, offset) ]
     return output
 
+class BM:
+    class Verts:
+        geom_vert:       (float, float, float) # 12 bytes
+        norm_vert:       (float, float, float) # 12 bytes
+        uv_vert:         (float, float) # 12 bytes # First value is NaN
 
-class BMVerts:
-    geom_vert:       (float, float, float) # 12 bytes
-    norm_vert:       (float, float, float) # 12 bytes
-    uv_vert:         (float, float) # 12 bytes # First value is NaN
+        def __init__(self, data):
+            self.geom_vert      = (data[0], data[1], data[2])
+            self.norm_vert      = (data[3], data[4], data[5])
+            self.uv_vert        = (data[7], data[8])
 
-    def __init__(self, data):
-        self.geom_vert      = (data[0], data[1], data[2])
-        self.norm_vert      = (data[3], data[4], data[5])
-        self.uv_vert        = (data[7], data[8])
+            assert(math.isnan(data[6]))
 
-        assert(math.isnan(data[6]))
+    class Mesh:
+        verts: list['BM.Verts']
+        indcs: list[int]
+        texture_name: str
 
-class Mesh:
-    verts: list[BMVerts]
-    indcs: list[int]
-    texture_name: str
+        def __init__(self, data, offset):
+            unpack_acc("4x", data, offset)
 
-    def __init__(self, data, offset):
-        unpack_acc("4x", data, offset)
+            indc_amount = unpack_acc("I", data, offset)
+            self.indcs = unpack_acc_list("hhh", data, offset, indc_amount//3)
+            print (f"- {indc_amount} indices")
 
-        indc_amount = unpack_acc("I", data, offset)
-        self.indcs = unpack_acc_list("hhh", data, offset, indc_amount//3)
-        print (f"- {indc_amount} indices")
+            vert_amount = unpack_acc("I", data, offset)
+            self.verts = unpack_acc_list("3f 3f 3f", data, offset, vert_amount, BM.Verts)
+            print (f"- {vert_amount} vertecies")
 
-        vert_amount = unpack_acc("I", data, offset)
-        self.verts = unpack_acc_list("3f 3f 3f", data, offset, vert_amount, BMVerts)
-        print (f"- {vert_amount} vertecies")
+            unpack_acc("53x", data, offset)
 
-        unpack_acc("53x", data, offset)
+            texture_name_size = unpack_acc("I", data, offset)
+            self.texture_name = unpack_acc(f"{texture_name_size}s", data, offset).decode("ascii")
+            print (f"- Texture: {self.texture_name}")
 
-        texture_name_size = unpack_acc("I", data, offset)
-        self.texture_name = unpack_acc(f"{texture_name_size}s", data, offset).decode("ascii")
-        print (f"- Texture: {self.texture_name}")
+            unpack_acc("36x", data, offset)
 
-        unpack_acc("36x", data, offset)
+    meshes: list[Mesh]
 
+    def __init__(self, filepath):
+        offset = [0]
+        print(f"Loading model {filepath}")
+        with open(filepath, "rb") as f:
+            data = f.read()
 
-filepath = "/home/misha/Documents/Projects/ZeroEscapeRE/model_converter/extracted_models/scenes/chara/phi/mdl/md_hairShape.bm"
-if len(sys.argv) >= 2:
-    filepath = Path(sys.argv[1]).absolute()
-filename = Path(filepath).stem
-
-
-offset = [0]
-print(f"Loading model {filepath}")
-f = open(filepath, "rb")
-data = f.read()
-f.close()
-
-
-mesh_amount = unpack_acc("I", data, offset)
-meshes: list[Mesh] = []
-print (f"Model contains {mesh_amount} mesh(es):")
-for mesh_count in range(mesh_amount):
-    print (f"Mesh {mesh_count}:")
-    new_mesh = Mesh(data, offset)
-    meshes += [ new_mesh ]
+        mesh_amount = unpack_acc("I", data, offset)
+        self.meshes: list[BM.Mesh] = []
+        print (f"Model contains {mesh_amount} mesh(es):")
+        for mesh_count in range(mesh_amount):
+            print (f"Mesh {mesh_count}:")
+            new_mesh = BM.Mesh(data, offset)
+            self.meshes += [ new_mesh ]
 
 
-import bpy
+if __name__ == "__main__":
+    filepath = Path("/home/misha/Documents/Projects/ZeroEscapeRE/model_converter/extracted_models/scenes/chara/phi/mdl/md_hairShape.bm")
+    if len(sys.argv) >= 2:
+        filepath = Path(sys.argv[1]).absolute()
+    filename = filepath.stem
 
-bpy.data.objects.remove(bpy.data.objects["Cube"], do_unlink=True) # Remove default cube
-for mesh_count, mesh in enumerate(meshes):
-    bmesh = bpy.data.meshes.new(f"{filename}_{mesh_count}")
-    obj = bpy.data.objects.new(bmesh.name, bmesh)
-    col = bpy.data.collections["Collection"]
-    col.objects.link(obj)
-    bpy.context.view_layer.objects.active = obj
+    model = BM(filepath)
 
-    bmesh.from_pydata([vert.geom_vert for vert in mesh.verts], [], mesh.indcs)
+    import bpy
 
-    bmesh.normals_split_custom_set_from_vertices([vert.norm_vert for vert in mesh.verts])
-    #bmesh.use_auto_smooth = True
+    bpy.data.objects.remove(bpy.data.objects["Cube"], do_unlink=True) # Remove default cube
+    for mesh_count, mesh in enumerate(model.meshes):
+        bmesh = bpy.data.meshes.new(f"{filename}.mesh") # Meshes after first will have ".###" automatically appended
+        obj = bpy.data.objects.new(bmesh.name, bmesh)
+        col = bpy.data.collections["Collection"]
+        col.objects.link(obj)
+        bpy.context.view_layer.objects.active = obj
 
-    bmesh_uv = bmesh.uv_layers.new()
-    for face in bmesh.polygons:
-        for vert, loop in zip(face.vertices, face.loop_indices):
-            bmesh_uv.data[loop].uv = ( mesh.verts[vert].uv_vert[0], 1 - mesh.verts[vert].uv_vert[1]) # V is inverted
+        bmesh.from_pydata([vert.geom_vert for vert in mesh.verts], [], mesh.indcs)
 
-    image = bpy.data.images.load(f"{Path(__file__).parent}/extracted_models/{Path(mesh.texture_name).with_suffix('.dds')}")
-    image.pack()
+        bmesh.normals_split_custom_set_from_vertices([vert.norm_vert for vert in mesh.verts])
+        #bmesh.use_auto_smooth = True
 
-    material = material = bpy.data.materials.new(Path(mesh.texture_name).stem)
-    material.use_nodes = True
+        bmesh_uv = bmesh.uv_layers.new()
+        for face in bmesh.polygons:
+            for vert, loop in zip(face.vertices, face.loop_indices):
+                bmesh_uv.data[loop].uv = ( mesh.verts[vert].uv_vert[0], 1 - mesh.verts[vert].uv_vert[1]) # V is inverted
 
-    texture = material.node_tree.nodes.new('ShaderNodeTexImage')
-    texture.image = image
+        image = bpy.data.images.load(f"{Path(__file__).parent}/extracted_models/{Path(mesh.texture_name).with_suffix('.dds')}")
+        image.pack()
 
-    bsdf = material.node_tree.nodes["Principled BSDF"]
-    material.node_tree.links.new(bsdf.inputs['Base Color'], texture.outputs['Color'])
-    material.node_tree.links.new(bsdf.inputs['Alpha'], texture.outputs['Alpha'])
-    material.blend_method = "CLIP"
+        material = material = bpy.data.materials.new(Path(mesh.texture_name).stem)
+        material.use_nodes = True
 
-    bmesh.materials.append(material)
+        texture = material.node_tree.nodes.new('ShaderNodeTexImage')
+        texture.image = image
+
+        bsdf = material.node_tree.nodes["Principled BSDF"]
+        material.node_tree.links.new(bsdf.inputs['Base Color'], texture.outputs['Color'])
+        material.node_tree.links.new(bsdf.inputs['Alpha'], texture.outputs['Alpha'])
+        material.blend_method = "CLIP"
+
+        bmesh.materials.append(material)
 
 
-bpy.ops.wm.save_as_mainfile(filepath=f"{Path(__file__).parent}/converted_models/{filename}.blend")
+    bpy.ops.wm.save_as_mainfile(filepath=f"{Path(__file__).parent}/converted_models/{filename}.blend")
