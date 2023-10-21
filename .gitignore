@@ -1,9 +1,9 @@
 model_converter/converted_models
 model_converter/extracted_models
-extractor/ze1_data
-extractor/ze2_data_en_us
-extractor/ze2_data_jp
-extractor/ze1_data.bin
-extractor/ze2_data_en_us.bin
-extractor/ze2_data_jp.bin
+extractor_compressor/ze1_data
+extractor_compressor/ze2_data_en_us
+extractor_compressor/ze2_data_jp
+extractor_compressor/ze1_data.bin
+extractor_compressor/ze2_data_en_us.bin
+extractor_compressor/ze2_data_jp.bin
 **/__pycache__

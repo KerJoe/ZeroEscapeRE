@@ -52,8 +52,8 @@ struct DynamicEntry {
     ExtraEntry extra_entry[animation_entry_count - 1];
     u32 ;
     u32 ;
-    u32 ;
-    u32 ;        
+    u32 u0_size;
+    u32 u0[u0_size];
     u32 ;
 };
 

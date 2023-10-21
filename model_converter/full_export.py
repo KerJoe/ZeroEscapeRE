@@ -9,7 +9,7 @@ def div_to_chunks(L, n):
     for i in range(0, len(L), n):
         yield L[i:i+n]
 
-dirpath = Path("/home/misha/Documents/Projects/ZeroEscapeRE/model_converter/extracted_models/scenes/chara/zero_t/")
+dirpath = Path("/home/misha/Documents/Projects/ZeroEscapeRE/model_converter/extracted_models/scenes/chara/phi/")
 if len(sys.argv) >= 2:
     dirpath = Path(sys.argv[1]).absolute()
 dirname = dirpath.stem
@@ -30,7 +30,7 @@ for bm in (dirpath/'mdl').glob("*.bm"):
 
 motion_objs = {}
 for motion in (dirpath).glob("*.motion"):
-    #motion_objs[motion.stem] = Motion(motion)
+    motion_objs[motion.stem] = Motion(motion)
     print()
 
 textures_list_raw = []
