@@ -1,9 +1,10 @@
+**/__pycache__
+.env
 model_converter/converted_models
 model_converter/extracted_models
-extractor_compressor/ze1_data
-extractor_compressor/ze2_data_en_us
-extractor_compressor/ze2_data_jp
-extractor_compressor/ze1_data.bin
-extractor_compressor/ze2_data_en_us.bin
-extractor_compressor/ze2_data_jp.bin
-**/__pycache__
+packer_unpacker/ze1_data
+packer_unpacker/ze2_data_en_us
+packer_unpacker/ze2_data_jp
+packer_unpacker/ze1_data.bin
+packer_unpacker/ze2_data_en_us.bin
+packer_unpacker/ze2_data_jp.bin
