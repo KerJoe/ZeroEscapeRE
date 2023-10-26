@@ -104,6 +104,9 @@ for bone in parentless_bones:
 transform_dict = {}
 for bone_name, bone_obj in bones_dict.items():
     transform_dict[bone_name] = bone_obj.transform
-model.add_armature(tree, transform_dict)
+
+if tree:
+    model.add_armature(tree, transform_dict)
+    model.parent_mesh_to_armature()
 
 model.save(args.output_file)

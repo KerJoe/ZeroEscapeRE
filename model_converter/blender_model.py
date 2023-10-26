@@ -100,7 +100,7 @@ class BlenderModel():
                 bone.length = 0.01
                 traverse_bone_heir(name_tree[child_name], child_abs_transform, bone)
 
-        armature = bpy.data.armatures.new(f"Armature")
+        armature = bpy.data.armatures.new("Armature")
         obj = bpy.data.objects.new(armature.name, armature)
         bpy.data.collections["Collection"].objects.link(obj)
         bpy.context.view_layer.objects.active = obj
@@ -108,5 +108,19 @@ class BlenderModel():
         obj.show_in_front = True
         traverse_bone_heir(name_tree)
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
+        bpy.data.meshes
         return armature
+
+    def parent_mesh_to_armature(self):
+        objs = bpy.data.collections["Collection"].objects
+        meshes = filter(lambda o: o.type == "MESH", objs)
+        armature = objs["Armature"]
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.select_all(action='DESELECT')
+        for mesh in meshes:
+            mesh.select_set(True)
+            armature.select_set(True)
+            bpy.context.view_layer.objects.active = armature
+            bpy.ops.object.parent_set(type='ARMATURE')
+            bpy.ops.object.select_all(action='DESELECT')
