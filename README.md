@@ -7,7 +7,7 @@ This project aims to allow extracting resources from data files of Zero Escape v
 ```
 git clone https://github.com/KerJoe/ZeroEscapeRE.git
 cd ZeroEscapeRE
-python -m venv .env
+python3.10 -m venv .env # NOTE: Blender python module from PyPi is only available for fixed versions of python (As of October 2023, it's version 3.10)
 source .env/bin/activate
 pip install -r requirements.txt
 ```
@@ -27,9 +27,9 @@ Nothing planed for now...
 ## Virtues Last Reward
 * [ ] PACK archive decompression
 * [ ] LUA decompilation
-* [ ] Model Mesh Export
-* [ ] Model Texture Export
+* [x] Model Mesh Export
+* [x] Model Texture Export
 * [ ] Model Scene Export
-* [ ] Model Bone Export
+* [x] Model Bone Export
 * [ ] Model Skeletal Animation Export
-* [ ] Model Face Animation Export
+* [x] Model Face Animation Export
