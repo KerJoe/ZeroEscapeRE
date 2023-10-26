@@ -32,4 +32,4 @@ Nothing planed for now...
 * [ ] Model Scene Export
 * [x] Model Bone Export
 * [ ] Model Skeletal Animation Export
-* [x] Model Face Animation Export
+* [x] Model Facial Animation Export
