@@ -1,4 +1,4 @@
-# Zero Escape Binary File unpacker.
+# Zero Escape BinDot unpacker.
 # Copyright (C) 2023 KerJoe.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -29,11 +29,11 @@ args = parser.parse_args()
 
 
 if not os.path.isfile(args.filename):
-    print("Input file does not exists, or is a folder.")
+    print("Input file does not exist or is a folder.")
     exit(1)
 
 if not os.path.isdir(args.folder):
-    print("Output folder does not exists, or is a file.")
+    print("Output folder does not exist or is a file.")
     exit(2)
 
 

@@ -1,4 +1,4 @@
-# Zero Escape Binary File class definition.
+# Zero Escape BinDot (game resource .bin file) data class.
 # Copyright (C) 2023 KerJoe.
 #
 # This program is free software: you can redistribute it and/or modify
