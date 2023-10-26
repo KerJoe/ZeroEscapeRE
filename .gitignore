@@ -1,5 +1,6 @@
 **/__pycache__
 .env
+temp
 model_converter/converted_models
 model_converter/extracted_models
 packer_unpacker/ze1_data
