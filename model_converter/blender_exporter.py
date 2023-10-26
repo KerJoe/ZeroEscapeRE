@@ -61,14 +61,13 @@ for filepath in filter(lambda p: p.suffix == '.bsm', args.input_files):
         except KeyError:
             if bsm_mesh.texture_name:
                 print(f'Texture "{Path(bsm_mesh.texture_name).stem}.dds" was not found in input files, the mesh will be left untextured.')
-        if not isinstance(bsm_mesh, BSM.ExtraMesh):
-            bone_vert_groups = {}
-            for bone in bsm_mesh.bones:
-                bone_vert_groups[bsm.armature.plain[bone].proper_name] = []
-            for vert_count, vert in enumerate(bsm_mesh.verts):
-                bone_vert_groups[bsm.armature.plain[bsm_mesh.bones[vert.bone0]].proper_name] += [ (vert_count, vert.bone0_weight) ]
-                bone_vert_groups[bsm.armature.plain[bsm_mesh.bones[vert.bone1]].proper_name] += [ (vert_count, vert.bone1_weight) ]
-            mesh.add_bone_weights(bone_vert_groups)
+        bone_vert_groups = {}
+        for bone in bsm_mesh.bones:
+            bone_vert_groups[bsm.armature.plain[bone].proper_name] = []
+        for vert_count, vert in enumerate(bsm_mesh.verts):
+            bone_vert_groups[bsm.armature.plain[bsm_mesh.bones[vert.bone0]].proper_name] += [ (vert_count, vert.bone0_weight) ]
+            bone_vert_groups[bsm.armature.plain[bsm_mesh.bones[vert.bone1]].proper_name] += [ (vert_count, vert.bone1_weight) ]
+        mesh.add_bone_weights(bone_vert_groups)
     print()
 
 # Combine all .bsm armatures into one
