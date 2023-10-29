@@ -74,7 +74,7 @@ for filepath in filter(lambda p: p.suffix == '.bsm', args.input_files):
         mesh.add_normals(bsm_mesh.verts)
         try:
             mesh.add_texture(bsm_mesh.verts, bsm_mesh.texture_name)
-        except KeyError:
+        except (KeyError, AttributeError):
             if bsm_mesh.texture_name:
                 print(f'Texture "{Path(bsm_mesh.texture_name).stem}.dds" was not found in input files, the mesh will be left untextured.')
         mesh.add_bone_weights(bsm.armature.bones, bsm_mesh.verts, bsm_mesh.bones)

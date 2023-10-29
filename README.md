@@ -12,6 +12,10 @@ source .env/bin/activate
 pip install -r requirements.txt
 ```
 
+## Model export
+
+Run `./auto_convert_ze2_models.sh <PATH TO ze2_data_en_us.bin>` to attempt to export all character models from the resource file.
+
 ## License
 The software is released under the GNU General Public License (GPL) which can be found in the file [`LICENSE.txt`](/LICENSE.txt) in the same directory as this file.
 
@@ -29,7 +33,7 @@ Nothing planed for now...
 * [ ] LUA decompilation
 * [x] Model Mesh Export
 * [x] Model Texture Export
-* [ ] Model Scene Export
+* [ ] Model Scene Export (WIP)
 * [x] Model Bone Export
-* [ ] Model Skeletal Animation Export
+* [ ] Model Skeletal Animation Export (WIP)
 * [x] Model Facial Animation Export

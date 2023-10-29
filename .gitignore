@@ -1,11 +1,3 @@
 **/__pycache__
 .env
 workdir
-model_converter/converted_models
-model_converter/extracted_models
-bindot/ze1_data
-bindot/ze2_data_en_us
-bindot/ze2_data_jp
-bindot/ze1_data.bin
-bindot/ze2_data_en_us.bin
-bindot/ze2_data_jp.bin

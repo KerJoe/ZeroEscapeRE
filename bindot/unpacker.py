@@ -30,7 +30,7 @@ args = parser.parse_args()
 
 
 bin_dot = BinDot()
-with try_open(args.filename, "rb") as fi:
+with try_open(args.bindot_in, "rb") as fi:
     bin_dot.open(fi, args.key)
 
     if not os.path.isdir(args.folder_out):
@@ -42,12 +42,12 @@ with try_open(args.filename, "rb") as fi:
             directory_path = args.folder_out
         else:
             directory_path = args.folder_out/f'{directory_count}-{directory.name_hash}'
-            if not os.path.isdir(args.folder_out):
+            if not os.path.isdir(directory_path):
                 os.mkdir(directory_path)
 
         for file_count, file in enumerate(directory.files):
             file_path = directory_path/f'{abs_file_count}-{file.name_hash}'
-            with open(file_path, 'wb') as fo:
+            with try_open(file_path, 'wb') as fo:
                 fo.write(bin_dot.read(fi, file))
 
             abs_file_count += 1
