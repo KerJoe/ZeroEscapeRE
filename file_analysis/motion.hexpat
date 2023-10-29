@@ -47,15 +47,15 @@ struct DynamicEntry {
     u32 ;
     u32 ;
     u32 ;
-    float ;
-    float ;
-    float ;
+    float offset_x;
+    float offset_y;
+    float offset_z;
     u32 ;
     u32 ;
     u32 ;
-    float ;
-    float ;
-    float ;
+    float rotation_x;
+    float rotation_y;
+    float rotation_z;
     u32 ;
     u32 ;
     u32 animation_entry_count;
@@ -76,8 +76,8 @@ struct DynamicEntry {
 struct MorphEntry {
     u32 model_name_size;
     char model_name[model_name_size];
-    u32 unk0_count;
-    u32 unk0[unk0_count];
+    u32 animation_count;
+    float animation_progress[animation_count];
 };
 
 struct StaticEntry {

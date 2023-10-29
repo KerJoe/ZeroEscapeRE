@@ -1,4 +1,4 @@
-# Zero Escape *.bsm file data class.
+# .bsm (rigged model file) data class.
 # Copyright (C) 2023 KerJoe.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,6 +16,8 @@
 
 import math
 from helper import *
+from treelib import Node, Tree
+
 
 class BSM:
     class Verts:
@@ -61,44 +63,29 @@ class BSM:
             self.unk0 = data.unpack("f")
 
     class Armature:
-        plain: list['BSM.Bone'] # 1D list of bone objects: [ bone1, bone2, bone3, bone4 ]
-        children: list[list[int]] # List of parents, where a parent contains a list of children indexes: [ 1: [2, 3], 2: [4], 3: [], 4: [] ]
-        tree: dict # Multidimensional dictionary, representing a tree of bone indexes: { 1: { 2: { 4: {} }, 3: {} } }
+        bones: Tree
 
         def __init__(self, data: AccUnpack):
-            bone_amount = data.unpack("I")
-            self.plain = []
-            print (f"Model contains {bone_amount} bone(s):")
-            for _ in range(bone_amount):
-                self.plain += [ BSM.Bone(data) ]
+            self.bones = Tree()
+            self.bones.create_node('@', '@')
 
-            self.children = [[] for _ in range(bone_amount)]
+            bone_amount = data.unpack("I")
+            print (f"Model contains {bone_amount} bone(s):")
+            for bone_count in range(bone_amount):
+                # First: Create a tree of bones all parented to root
+                bone = BSM.Bone(data)
+                self.bones.create_node(bone.proper_name, bone_count, data=bone, parent=self.bones['@'])
+
             if bone_amount > 0:
-                for bone in range(bone_amount):
-                    bone_children = data.unpack("I")
-                    for _ in range(bone_children):
-                        self.children[bone] += [ data.unpack("I") ]
+                for parent in range(bone_amount):
+                    bone_child_count = data.unpack("I")
+                    for _ in range(bone_child_count):
+                        # Second: Move bones to their parents
+                        child = data.unpack("I")
+                        self.bones.move_node(self.bones[child].identifier, self.bones[parent].identifier)
             else:
                 data.unpack("8x")
 
-            def traverse_bone_heir(pos, level, tree):
-                print(f"{'  ' * level}{self.plain[pos].proper_name} : {self.plain[pos].internal_name}")
-                if self.children[pos] != []:
-                    for child in self.children[pos]:
-                        tree[child] = {}
-                        traverse_bone_heir(child, level + 1, tree[child])
-
-            parentless_bones = []
-            all_bone_children = []
-            self.tree = {}
-            for bone_count in range(bone_amount):
-                all_bone_children += self.children[bone_count]
-            for bone_count in range(bone_amount):
-                if not bone_count in all_bone_children:
-                    parentless_bones += [ bone_count ]
-            for bone_count in parentless_bones:
-                self.tree[bone_count] = {}
-                traverse_bone_heir(bone_count, 1, self.tree[bone_count])
 
     class Animation:
         name: str

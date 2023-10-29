@@ -3,9 +3,9 @@
 workdir
 model_converter/converted_models
 model_converter/extracted_models
-packer_unpacker/ze1_data
-packer_unpacker/ze2_data_en_us
-packer_unpacker/ze2_data_jp
-packer_unpacker/ze1_data.bin
-packer_unpacker/ze2_data_en_us.bin
-packer_unpacker/ze2_data_jp.bin
+bindot/ze1_data
+bindot/ze2_data_en_us
+bindot/ze2_data_jp
+bindot/ze1_data.bin
+bindot/ze2_data_en_us.bin
+bindot/ze2_data_jp.bin

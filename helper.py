@@ -14,15 +14,44 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import struct
+import struct, os
 from typing import Generator
+
 
 def div_to_chunks(L: list, n: int) -> Generator[list, None, None]:
     """ Yield successive n-sized chunks from L """
     for i in range(0, len(L), n):
         yield L[i:i+n]
 
+def try_open(*args, **kwargs):
+    """ Attempt to open a file, on exception exit without traceback """
+    try:
+        open(*args, **kwargs)
+    except IOError as error:
+        print(error)
+        exit(1)
+
+def try_read_directory(path: str):
+    if os.path.exists(path):
+        if not os.path.isdir(path):
+            print(f"Is a file: '{path}'")
+            exit(1)
+    if not os.access(path, os.R_OK):
+        print(f"Directory cannot be read from: '{path}'")
+        exit(1)
+
+def try_write_directory(path: str):
+    if os.path.exists(path):
+        if not os.path.isdir(path):
+            print(f"Is a file: '{path}'")
+            exit(1)
+    if not os.access(path, os.W_OK):
+        print(f"Directory cannot be written to: '{path}'")
+        exit(1)
+
 class AccUnpack:
+    """ Like built-in struct.unpack, but with position tracking """
+
     offset: int
     data: bytes
     byte_order: str

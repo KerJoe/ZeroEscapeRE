@@ -1,4 +1,4 @@
-# Zero Escape *.bm file data class.
+# .bm (simple model file) data class.
 # Copyright (C) 2023 KerJoe.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,6 +16,7 @@
 
 import math
 from helper import *
+
 
 class BM:
     class Verts:

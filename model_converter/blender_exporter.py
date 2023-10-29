@@ -1,112 +1,102 @@
+# Blender exporter for Zero Escape models.
+# Copyright (C) 2023 KerJoe.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 from bm import BM
 from bsm import BSM
 from blender_model import BlenderModel
 from pathlib import Path
 from argparse import ArgumentParser
+from treelib import Tree, Node
 import os
 
 
 parser = ArgumentParser(description='Zero Escape to Blender, model exporter')
 parser.add_argument('output_file', type=Path, help='File path of ouput blender model')
-parser.add_argument('input_files', type=Path, nargs='*', help='List of Zero Escape .bm, .bsm, .dds input files')
-args = parser.parse_args()
-
-
-if not args.input_files:
-    print(f'No input files passed. Exiting.')
-    exit(0)
-for filepath in args.input_files:
-    if not os.path.isfile(filepath):
-        print(f'Input file "{filepath}" does not exist or is a folder.')
-        exit(1)
-
-if os.path.isdir(args.output_file):
-    print("Output file is a folder.")
-    exit(2)
+parser.add_argument('input_files', type=Path, nargs='*', help='List of Zero Escape model file paths (Supported: .bm, .bsm, .dds)')
+args = parser.parse_args("workdir/test.blend workdir/scenes/chara/phi/mdl/md_arm_LShape-skin.bsm workdir/scenes/chara/phi/mdl/md_arm_RShape-skin.bsm workdir/scenes/chara/phi/mdl/md_bodyShape-skin.bsm workdir/scenes/chara/phi/mdl/md_coatShape-skin.bsm workdir/scenes/chara/phi/mdl/md_faceShape-morph-skin.bsm workdir/scenes/chara/phi/mdl/md_necklaceShape-skin.bsm workdir/scenes/chara/phi/mdl/md_bangleShape.bm workdir/scenes/chara/phi/mdl/md_broochShape.bm workdir/scenes/chara/phi/mdl/md_earShape.bm workdir/scenes/chara/phi/mdl/md_eye_LShape.bm workdir/scenes/chara/phi/mdl/md_eye_RShape.bm workdir/scenes/chara/phi/mdl/md_flower0rShape.bm workdir/scenes/chara/phi/mdl/md_flower0Shape.bm workdir/scenes/chara/phi/mdl/md_flower1rShape.bm workdir/scenes/chara/phi/mdl/md_flower1Shape.bm workdir/scenes/chara/phi/mdl/md_flower2rShape.bm workdir/scenes/chara/phi/mdl/md_flower2Shape.bm workdir/scenes/chara/phi/mdl/md_hairShape.bm workdir/scenes/chara/phi/mdl/md_headShape.bm workdir/scenes/chara/phi/tex/bangle.dds workdir/scenes/chara/phi/tex/phi_costume.dds workdir/scenes/chara/phi/tex/phi_eye.dds workdir/scenes/chara/phi/tex/phi_face.dds workdir/scenes/chara/phi/tex/phi_flower.dds workdir/scenes/chara/phi/tex/phi_hair.dds workdir/scenes/chara/phi/tex/phi_matuge.dds workdir/scenes/chara/phi/tex/phi_skin.dds".split(' '))
 
 
 model = BlenderModel(args.output_file.stem)
-filepath: Path
 
+
+filepath: Path
+model_objects: dict[str, list[object]] = {}
+
+model_objects['dds'] = []
 for filepath in filter(lambda p: p.suffix == '.dds', args.input_files):
     print(f"Adding texture image: {filepath}")
     model.add_texture_image(filepath.stem, filepath)
+    model_objects['dds'] += [ filepath.stem ]
 print()
 
+model_objects['bm'] = []
 for filepath in filter(lambda p: p.suffix == '.bm', args.input_files):
     print(f"Adding simple model: {filepath}")
     bm = BM(open(filepath, 'rb').read())
+    model_objects['bm'] += [ bm ]
+
     for bm_mesh in bm.meshes:
         mesh = model.add_mesh(filepath.stem)
-        mesh.add_mesh([vert.geom_vert for vert in bm_mesh.verts], bm_mesh.indcs)
-        mesh.add_normals([vert.norm_vert for vert in bm_mesh.verts])
+        mesh.add_geometry(bm_mesh.verts, bm_mesh.indcs)
+        mesh.add_normals(bm_mesh.verts)
         try:
-            mesh.add_texture([vert.uv_vert for vert in bm_mesh.verts], Path(bm_mesh.texture_name).stem)
+            mesh.add_texture(bm_mesh.verts, bm_mesh.texture_name)
         except KeyError:
             if bm_mesh.texture_name:
                 print(f'Texture "{Path(bm_mesh.texture_name).stem}.dds" was not found in input files, the mesh will be left untextured.')
     print()
 
-bsm_armatures = []
+model_objects['bsm'] = []
 for filepath in filter(lambda p: p.suffix == '.bsm', args.input_files):
     print(f"Adding rigged model: {filepath}")
     bsm = BSM(open(filepath, 'rb').read())
-    bsm_armatures += [ bsm.armature ]
+    model_objects['bsm'] += [ bsm ]
+
     for bsm_mesh in bsm.meshes:
         mesh = model.add_mesh(filepath.stem)
-        mesh.add_mesh([vert.geom_vert for vert in bsm_mesh.verts], bsm_mesh.indcs)
-        mesh.add_normals([vert.norm_vert for vert in bsm_mesh.verts])
+        mesh.add_geometry(bsm_mesh.verts, bsm_mesh.indcs)
+        mesh.add_normals(bsm_mesh.verts)
         try:
-            mesh.add_texture([vert.uv_vert for vert in bsm_mesh.verts], Path(bsm_mesh.texture_name).stem)
+            mesh.add_texture(bsm_mesh.verts, bsm_mesh.texture_name)
         except KeyError:
             if bsm_mesh.texture_name:
                 print(f'Texture "{Path(bsm_mesh.texture_name).stem}.dds" was not found in input files, the mesh will be left untextured.')
-        bone_vert_groups = {}
-        for bone in bsm_mesh.bones:
-            bone_vert_groups[bsm.armature.plain[bone].proper_name] = []
-        for vert_count, vert in enumerate(bsm_mesh.verts):
-            bone_vert_groups[bsm.armature.plain[bsm_mesh.bones[vert.bone0]].proper_name] += [ (vert_count, vert.bone0_weight) ]
-            bone_vert_groups[bsm.armature.plain[bsm_mesh.bones[vert.bone1]].proper_name] += [ (vert_count, vert.bone1_weight) ]
-        mesh.add_bone_weights(bone_vert_groups)
+        mesh.add_bone_weights(bsm.armature.bones, bsm_mesh.verts, bsm_mesh.bones)
+        mesh.add_shapekeys(bsm_mesh.animations, bsm_mesh.verts)
     print()
 
 # Combine all .bsm armatures into one
-bones_list_raw = []
-for armature in bsm_armatures:
-    bones_list_raw += armature.plain
-bones_dict = {}
-for bone in bones_list_raw:
-    if bone.proper_name in bones_dict.keys():
-        continue
-    bones_dict[bone.proper_name] = bone
-children = {}
-for bone in bones_dict:
-    children[bone] = []
-for armature in bsm_armatures:
-    for parent in range(len(armature.children)):
-        for child in armature.children[parent]:
-            children[armature.plain[parent].proper_name] += [ armature.plain[child].proper_name ]
-def traverse_bone_heir(bone, tree):
-    for child in children[bone]:
-        tree[child] = {}
-        traverse_bone_heir(child, tree[child])
-parentless_bones = []
-all_bone_children = []
-tree = {}
-for children_value in children.values():
-    all_bone_children += children_value
-for bone in children:
-    if not bone in all_bone_children:
-        parentless_bones += [ bone ]
-for bone in parentless_bones:
-    tree[bone] = {}
-    traverse_bone_heir(bone, tree[bone])
-transform_dict = {}
-for bone_name, bone_obj in bones_dict.items():
-    transform_dict[bone_name] = bone_obj.transform
+armature = Tree(); armature.create_node('@', '@')
+bsm: BSM
+# Flatten tree and deduplicate bones
+for bsm in model_objects['bsm']:
+    for bone in bsm.armature.bones.expand_tree():
+        bone_node: Node = bsm.armature.bones[bone]
+        if (bone_node.tag in armature) or bone_node.is_root():
+            continue
+        armature.create_node(bone_node.tag, bone_node.tag, data=bone_node.data, parent='@')
+# Recreate tree stucture
+for bsm in model_objects['bsm']:
+    for bone in bsm.armature.bones.expand_tree():
+        bone_node: Node = bsm.armature.bones[bone]
+        if bone_node.is_root() or (bsm.armature.bones.parent(bone) == bsm.armature.bones.root):
+            continue
+        armature.move_node(bone_node.tag, bsm.armature.bones.parent(bone).tag)
+if model_objects['bsm'] != []:
+    model.add_armature(armature)
 
-if tree:
-    model.add_armature(tree, transform_dict)
-    model.parent_mesh_to_armature()
 
 model.save(args.output_file)

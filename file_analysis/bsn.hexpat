@@ -37,18 +37,27 @@ struct MeshEntry {
 };
 
 struct SceneEntry {
-    u32;
     char type[4];
     u32 name_size;
     char name[name_size];
-    float ;
-    float unk0[9];
+    u32 ; // Always 0xFFFFFFFF
+    float offset_x;
+    float offset_y;
+    float offset_z;
+    float rotation_x;
+    float rotation_y;
+    float rotation_z;
+    float size_x; // ?
+    float size_y; // ?
+    float size_z; // ?
     u32 ;
     u32 mesh_count;
     u32 ;
     u32 ;
     MeshEntry mesh_entry[mesh_count];
     u32 unk1[mesh_count == 0];
+    u32 child_count;
 } [[single_color]];
 
-SceneEntry scene_entries[while(std::mem::size() - 4 != $)] @ $;
+u32 scene_count @ $;
+SceneEntry scene_entries[while(std::mem::size() != $)] @ $;
