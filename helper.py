@@ -26,7 +26,7 @@ def div_to_chunks(L: list, n: int) -> Generator[list, None, None]:
 def try_open(*args, **kwargs):
     """ Attempt to open a file, on exception exit without traceback """
     try:
-        open(*args, **kwargs)
+        return open(*args, **kwargs)
     except IOError as error:
         print(error)
         exit(1)
