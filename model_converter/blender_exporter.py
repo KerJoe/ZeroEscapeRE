@@ -26,7 +26,7 @@ import os
 parser = ArgumentParser(description='Zero Escape to Blender, model exporter')
 parser.add_argument('output_file', type=Path, help='File path of ouput blender model')
 parser.add_argument('input_files', type=Path, nargs='*', help='List of Zero Escape model file paths (Supported: .bm, .bsm, .dds)')
-args = parser.parse_args("workdir/test.blend workdir/scenes/chara/phi/mdl/md_arm_LShape-skin.bsm workdir/scenes/chara/phi/mdl/md_arm_RShape-skin.bsm workdir/scenes/chara/phi/mdl/md_bodyShape-skin.bsm workdir/scenes/chara/phi/mdl/md_coatShape-skin.bsm workdir/scenes/chara/phi/mdl/md_faceShape-morph-skin.bsm workdir/scenes/chara/phi/mdl/md_necklaceShape-skin.bsm workdir/scenes/chara/phi/mdl/md_bangleShape.bm workdir/scenes/chara/phi/mdl/md_broochShape.bm workdir/scenes/chara/phi/mdl/md_earShape.bm workdir/scenes/chara/phi/mdl/md_eye_LShape.bm workdir/scenes/chara/phi/mdl/md_eye_RShape.bm workdir/scenes/chara/phi/mdl/md_flower0rShape.bm workdir/scenes/chara/phi/mdl/md_flower0Shape.bm workdir/scenes/chara/phi/mdl/md_flower1rShape.bm workdir/scenes/chara/phi/mdl/md_flower1Shape.bm workdir/scenes/chara/phi/mdl/md_flower2rShape.bm workdir/scenes/chara/phi/mdl/md_flower2Shape.bm workdir/scenes/chara/phi/mdl/md_hairShape.bm workdir/scenes/chara/phi/mdl/md_headShape.bm workdir/scenes/chara/phi/tex/bangle.dds workdir/scenes/chara/phi/tex/phi_costume.dds workdir/scenes/chara/phi/tex/phi_eye.dds workdir/scenes/chara/phi/tex/phi_face.dds workdir/scenes/chara/phi/tex/phi_flower.dds workdir/scenes/chara/phi/tex/phi_hair.dds workdir/scenes/chara/phi/tex/phi_matuge.dds workdir/scenes/chara/phi/tex/phi_skin.dds".split(' '))
+args = parser.parse_args()
 
 
 model = BlenderModel(args.output_file.stem)
