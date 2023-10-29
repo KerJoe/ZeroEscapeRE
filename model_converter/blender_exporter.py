@@ -16,10 +16,13 @@
 
 from bm import BM
 from bsm import BSM
+from bsn import BSN
+from motion import Motion
 from blender_model import BlenderModel
 from pathlib import Path
 from argparse import ArgumentParser
 from treelib import Tree, Node
+from helper import *
 import os
 
 
@@ -45,7 +48,7 @@ print()
 model_objects['bm'] = []
 for filepath in filter(lambda p: p.suffix == '.bm', args.input_files):
     print(f"Adding simple model: {filepath}")
-    bm = BM(open(filepath, 'rb').read())
+    bm = BM(try_open(filepath, 'rb').read())
     model_objects['bm'] += [ bm ]
 
     for bm_mesh in bm.meshes:
@@ -62,7 +65,7 @@ for filepath in filter(lambda p: p.suffix == '.bm', args.input_files):
 model_objects['bsm'] = []
 for filepath in filter(lambda p: p.suffix == '.bsm', args.input_files):
     print(f"Adding rigged model: {filepath}")
-    bsm = BSM(open(filepath, 'rb').read())
+    bsm = BSM(try_open(filepath, 'rb').read())
     model_objects['bsm'] += [ bsm ]
 
     for bsm_mesh in bsm.meshes:
@@ -77,6 +80,16 @@ for filepath in filter(lambda p: p.suffix == '.bsm', args.input_files):
         mesh.add_bone_weights(bsm.armature.bones, bsm_mesh.verts, bsm_mesh.bones)
         mesh.add_shapekeys(bsm_mesh.animations, bsm_mesh.verts)
     print()
+
+bsn_files = list(filter(lambda p: p.suffix == '.bsn', args.input_files))
+if bsn_files:
+    filepath = bsn_files[0]
+    if len(bsn_files) > 1:
+        print(f"More than one .bsn file passed. Using only '{filepath}'.")
+
+    print(f"Using structure file {filepath}")
+    bsn = BSN(try_open(filepath, 'rb').read())
+    model_objects['bsn'] = bsn
 
 # Combine all .bsm armatures into one
 armature = Tree(); armature.create_node('@', '@')
@@ -96,7 +109,23 @@ for bsm in model_objects['bsm']:
             continue
         armature.move_node(bone_node.tag, bsm.armature.bones.parent(bone).tag)
 if model_objects['bsm'] != []:
+    print(f"Combined armature tree:")
+    print(armature.show(stdout=False))
     model.add_armature(armature)
+
+
+motion_files = list(filter(lambda p: p.suffix == '.motion', args.input_files))
+if motion_files:
+    filepath = motion_files[0]
+    if len(bsn_files) > 1:
+        print(f"More than one .motion file passed. Using only '{filepath}'.")
+
+    print(f"Adding animator: {filepath}")
+    motion = Motion(try_open(filepath, 'rb').read())
+    model_objects['motion'] = motion
+
+    model.add_animation(motion.dynamics)
+    print()
 
 
 model.save(args.output_file)

@@ -14,10 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import bpy, mathutils
+import bpy, mathutils, math
 from pathlib import Path
 from bm import BM
 from bsm import BSM
+from motion import Motion
+from helper import *
 from treelib import Tree, Node
 
 
@@ -32,9 +34,21 @@ class BlenderModel():
             self.mesh = bpy.data.meshes.new(f"{name}.mesh") # Meshes after first will have ".###" automatically appended
             self.mesh_obj = bpy.data.objects.new(self.mesh.name, self.mesh)
             bpy.data.collections["Collection"].objects.link(self.mesh_obj)
+            # Display textured model on Layout screen
+            for area in bpy.data.screens["Layout"].areas:
+                if area.type == 'VIEW_3D':
+                    for space in area.spaces:
+                        if space.type == 'VIEW_3D':
+                            space.shading.type = 'MATERIAL'
+                            break
+                    else:
+                        continue
+                    break
 
         def add_geometry(self, verts: list[BM.Verts | BSM.Verts], indcs: list[int]):
             self.mesh.from_pydata([vert.geom_vert for vert in verts], [], indcs)
+            for face in self.mesh.polygons:
+                face.use_smooth = True
 
         def add_normals(self, verts: list[BM.Verts | BSM.Verts]):
             self.mesh.normals_split_custom_set_from_vertices([vert.norm_vert for vert in verts])
@@ -98,6 +112,8 @@ class BlenderModel():
     def __init__(self, name: str):
         self.name = name
         bpy.data.objects.remove(bpy.data.objects["Cube"], do_unlink=True) # Remove default cube
+        bpy.data.objects.remove(bpy.data.objects["Light"], do_unlink=True) # Remove default light
+        bpy.data.objects.remove(bpy.data.objects["Camera"], do_unlink=True) # Remove default camera
 
     def open(self, filepath: str):
         bpy.ops.wm.open_mainfile(filepath=str(filepath))
@@ -162,3 +178,52 @@ class BlenderModel():
             bpy.context.view_layer.objects.active = armature_obj
             bpy.ops.object.parent_set(type='ARMATURE')
             bpy.ops.object.select_all(action='DESELECT')
+
+    def add_animation(self, dynamics: list[Motion.Dynamic]):
+        bpy.context.scene.render.fps = 100
+        bpy.ops.object.mode_set(mode='POSE')
+        obj = bpy.data.objects[f"Armature"]
+
+        for bone in obj.pose.bones:
+            bone.rotation_mode = "XYZ"
+        last_timestamp = 0
+        for dynamic in dynamics:
+            if dynamic.name in obj.pose.bones:
+                sub_bones = filter(lambda bone: bone.name.startswith(f"{dynamic.name}.") or bone.name == dynamic.name, obj.pose.bones)
+                for sub_bone in sub_bones:
+                    if len(dynamic.rotations) % 3 != 0:
+                        print (f"Skipped {sub_bone.name}")
+                        break
+                    prev_angle = (0, 0, 0)
+                    for timestamp, angle in zip(dynamic.timestamps, div_to_chunks(dynamic.rotations, 3)):
+                        compensated_angle = [ angle[0], angle[1], angle[2] ]
+
+                        def norm_angle(angle):
+                            """ Normalize angle to values between 0 and 360 """
+                            return (angle if angle > 0 else 360 - (-angle % 360)) % 360
+
+                        def comp_angle(prev, next):
+                            """ Rotate to 'curr' angle from 'prev' angle via the shortest path (clockwise or counterclockwise) """
+                            angle_add = norm_angle(next - prev)
+                            angle_sub = norm_angle(360 - angle_add)
+                            if (angle_add < angle_sub):
+                                return prev + angle_add
+                            else:
+                                return prev - angle_sub
+
+                        compensated_angle[0] = comp_angle(prev_angle[0], angle[0])
+                        compensated_angle[1] = comp_angle(prev_angle[1], angle[1])
+                        compensated_angle[2] = comp_angle(prev_angle[2], angle[2])
+
+                        assert(abs(prev_angle[0] - compensated_angle[0]) <= 180)
+                        assert(abs(prev_angle[1] - compensated_angle[1]) <= 180)
+                        assert(abs(prev_angle[2] - compensated_angle[2]) <= 180)
+
+                        sub_bone.rotation_euler = \
+                            ( math.radians(compensated_angle[0]), math.radians(compensated_angle[1]), math.radians(compensated_angle[2]))
+                        sub_bone.keyframe_insert("rotation_euler", frame=int(timestamp*bpy.context.scene.render.fps))
+                        prev_angle = ( compensated_angle[0], compensated_angle[1], compensated_angle[2] )
+
+                        last_timestamp = max(timestamp, last_timestamp)
+
+        bpy.context.scene.frame_end = math.ceil(last_timestamp * 100)

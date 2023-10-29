@@ -98,5 +98,5 @@ class BSN:
         assert(data.unpack('I') == 1)
 
         BSN.SceneEntry(data, self.scene_entries)
-        print('Final tree:')
+        print('Scene tree:')
         print(self.scene_entries.show(stdout=False))
