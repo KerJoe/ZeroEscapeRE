@@ -21,19 +21,19 @@ from helper import *
 
 
 parser = ArgumentParser(description='BinDot file repacker')
-parser.add_argument('bindot_in', type=Path, help='Source BinDot file path from which the file structure will be copied to the output file')
-parser.add_argument('directory_in', type=Path, help='Directory path containing modified files extracted from BinDot')
-parser.add_argument('bindot_out', type=Path, help='Path to the resulting BinDot file')
+parser.add_argument('input_bindot', type=Path, help='Source BinDot file path from which the file structure will be copied to the output file')
+parser.add_argument('input_directory', type=Path, help='Directory path containing modified files extracted from BinDot')
+parser.add_argument('output_bindot', type=Path, help='Path to the resulting BinDot file')
 parser.add_argument('-k', '--key', type=int, help='Decryption key, if not specified will be auto detected')
 parser.add_argument('-f', '--flat', action='store_true', help='Pass this flag if unpacker was called with it')
 args = parser.parse_args()
 
 
 bindot = BinDot()
-with try_open(args.bindot_in, "rb") as fi:
+with try_open(args.input_bindot, "rb") as fi:
     bindot.open(fi, args.key)
 
-with try_open(args.bindot_out, "wb") as fo:
+with try_open(args.output_bindot, "wb") as fo:
     abs_file_count = 0
     offset_count = 0
     file_path_list = []
@@ -41,9 +41,9 @@ with try_open(args.bindot_out, "wb") as fo:
 
     for directory_count, directory in enumerate(bindot.directories):
         if args.flat:
-            directory_path = args.directory_in
+            directory_path = args.input_directory
         else:
-            directory_path = args.directory_in/f'{directory_count}-{directory.name_hash}'
+            directory_path = args.input_directory/f'{directory_count}-{directory.name_hash}'
 
         for file_count, file in enumerate(directory.files):
             file_path = directory_path/f'{abs_file_count}-{file.name_hash}'

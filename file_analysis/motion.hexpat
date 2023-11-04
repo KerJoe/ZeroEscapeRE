@@ -41,21 +41,33 @@ struct ExtraEntry {
     float unk4[unk4_count];
 };
 
-struct DynamicEntry {
-    u32 bone_name_count;
-    char bone_name[bone_name_count];
-    u32 ;
-    u32 ;
-    u32 ;
-    float offset_x;
-    float offset_y;
-    float offset_z;
+struct AngleEntry {
     u32 ;
     u32 ;
     u32 ;
     float rotation_x;
     float rotation_y;
     float rotation_z;
+};
+
+struct AngleExtraEntry {
+    u32 unk0_count;
+    u32 unk0[unk0_count];
+    u32 unk1_count;
+    float unk1[unk1_count];
+};
+
+struct DynamicEntry {
+    u32 bone_name_count;
+    char bone_name[bone_name_count];
+    u32 ;
+    u32 unk3;
+    u32 ;
+    float offset_x;
+    float offset_y;
+    float offset_z;
+    AngleEntry angle_entry[unk3>1];
+    AngleExtraEntry angle_extra_entry[unk3>2];
     u32 ;
     u32 ;
     u32 animation_entry_count;
@@ -66,10 +78,12 @@ struct DynamicEntry {
     u32 movement_count;
     float movements[movement_count];
     ExtraEntry extra_entry[animation_entry_count - 1];
-    u32 ;
-    u32 ;
     u32 unk0_count;
     u32 unk0[unk0_count];
+    u32 unk1_count;
+    u32 unk1[unk1_count];
+    u32 unk2_count;
+    u32 unk2[unk2_count];
     u32 ;
 };
 

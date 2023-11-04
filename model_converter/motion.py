@@ -64,9 +64,39 @@ class Motion:
             for _ in range(animation_amount - 1):
                 self.extras += [ Motion.DynamicExtra(data) ]
 
-            data.unpack("20x")
+            data.unpack("8x")
+            unk0_count = data.unpack("I")
+            unk0 = data.unpack_list("I", unk0_count)
+            data.unpack("4x")
+
+    class Morph:
+        name: str
+        progress: list[float]
+
+        def __init__(self, data: AccUnpack):
+            name_size = data.unpack("I")
+            self.name = data.unpack(f"{name_size}s").decode("ascii")
+            print (f"- {self.name}")
+
+            progress_count = data.unpack("I")
+            self.progress = data.unpack_list('f', progress_count)
+
+    class Static:
+        name: str
+        transform: list[list[float]]
+
+        def __init__(self, data: AccUnpack):
+            name_size = data.unpack("I")
+            self.name = data.unpack(f"{name_size}s").decode("ascii")
+            print (f"- {self.name}")
+
+            self.transform = list(div_to_chunks(data.unpack("16f"), 4))
+
 
     dynamics: list['Motion.Dynamic']
+    morphs: list['Motion.Morph']
+    statics: list['Motion.Static']
+
 
     def __init__(self, data_bytes):
         data = AccUnpack(data_bytes)
@@ -78,3 +108,15 @@ class Motion:
         print (f"Animator contains {dynamic_amount} dynamic bone(s):")
         for _ in range(dynamic_amount):
             self.dynamics += [ Motion.Dynamic(data) ]
+
+        morph_amount = data.unpack("I")
+        self.morphs = []
+        print (f"Animator contains {morph_amount} morph animation(s):")
+        for _ in range(morph_amount):
+            self.morphs += [ Motion.Morph(data) ]
+
+        static_amount = data.unpack("I")
+        self.statics = []
+        print (f"Animator contains {static_amount} static bone(s):")
+        for _ in range(static_amount):
+            self.statics += [ Motion.Static(data) ]

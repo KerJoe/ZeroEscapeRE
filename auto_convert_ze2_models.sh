@@ -25,6 +25,8 @@ DIR="$(dirname -- "${BASH_SOURCE[0]}")"
 DIR="$(realpath -e -- "$DIR")"
 cd ${DIR}
 
+source .env/bin/activate
+
 mkdir workdir
 mkdir workdir/ze2_data_en_us
 mkdir workdir/converted_models
@@ -45,6 +47,6 @@ for MODEL in "workdir/extracted_models/scenes/chara/"*; do
         if [ -z ${ANIMATION} ]; then
             ANIMATION_BASE="base"
         fi
-        python model_converter/blender_exporter.py workdir/converted_models/${MODEL_BASE}.${ANIMATION_BASE}.blend ${MODEL}/mdl/* ${MODEL}/tex/* ${ANIMATION}
+        python model_converter/blender_exporter.py workdir/converted_models/${MODEL_BASE}.${ANIMATION_BASE}.blend ${MODEL}/scene.bsn ${MODEL}/mdl/* ${MODEL}/tex/* ${ANIMATION}
     done
 done

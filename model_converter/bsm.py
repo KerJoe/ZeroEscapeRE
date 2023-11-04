@@ -96,7 +96,7 @@ class BSM:
         verts: list['BSM.Verts']
         indcs: list[int]
         bones: list[int]
-        texture_name: str
+        texture_name: str = None
         has_extra_mesh: bool
         animations: list['BSM.Animation']
 

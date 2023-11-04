@@ -38,8 +38,8 @@ class BinDot:
         """ Zero Escape data decryption/encryption algorithm """
 
         if offset:
-            offset_bytes = bytes(range(offset & 0xFF, 256)) + bytes(range(0, offset & 0xFF)) # if offset = 254: 254 255 0 1 ... 253
-            key_bytes = key.to_bytes(4, 'little')[offset & 0b11:4] + key.to_bytes(4, 'little')[0:offset & 0b11] # Start key sequence from byte number = offset % 4
+            offset_bytes = bytes(range(offset & 0xFF, 256)) + bytes(range(0, offset & 0xFF)) # e.g. if offset = 254, then: 254 255 0 1 ... 253
+            key_bytes = key.to_bytes(4, 'little')[offset & 0b11:4] + key.to_bytes(4, 'little')[0:offset & 0b11] # Start key sequence from byte number equal to offset % 4
         else:
             offset_bytes = bytes(range(256)) # 0 1 2 ... 255
             key_bytes = key.to_bytes(4, 'little')
@@ -47,7 +47,7 @@ class BinDot:
         mask = xor_cipher.cyclic_xor_unsafe(offset_bytes, key_bytes) # Mask repeats every 256 bytes
         return xor_cipher.cyclic_xor_unsafe(bytes(data), mask)
 
-    # Decryption and encryption uses the same algorithm
+    # Decryption and encryption use the same algorithm
     encrypt = crypt
     decrypt = crypt
 
@@ -107,7 +107,7 @@ class BinDot:
     vlr_key = 0x1D153C0A
 
     key: int = None
-    directories: list['BinDot.DirEntry'] = []
+    directories: list['BinDot.DirEntry']
     files: list['BinDot.FileEntry']
 
 

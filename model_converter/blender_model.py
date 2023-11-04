@@ -104,6 +104,13 @@ class BlenderModel():
                 for weight in bone_value:
                     vert_group.add([weight[0]], weight[1], "ADD")
 
+        def add_single_bone_weight(self, bone: str, weight: float):
+            indcs_list = []
+            for face in self.mesh.polygons:
+                indcs_list += list(face.loop_indices)
+            vert_group = self.mesh_obj.vertex_groups.new(name=bone)
+            vert_group.add(indcs_list, weight, "ADD")
+
 
     name: str
     meshes: list['BlenderModel.Mesh'] = []
@@ -164,10 +171,9 @@ class BlenderModel():
             if not armature_tree[bone_id] in armature_tree.children(armature_tree.root): # If bone is not child of root
                 bone.parent = armature.edit_bones[armature_tree.parent(bone_id).identifier]
             bone.transform(transform_tree[bone_id].data)
-            bone.length = 0.01
+            bone.tail = ( bone.head[0], bone.head[1] + 0.01, bone.head[2] )
 
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-        bpy.data.meshes
 
         meshes = [ mesh.mesh_obj for mesh in self.meshes ]
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -179,10 +185,10 @@ class BlenderModel():
             bpy.ops.object.parent_set(type='ARMATURE')
             bpy.ops.object.select_all(action='DESELECT')
 
-    def add_animation(self, dynamics: list[Motion.Dynamic]):
+    def add_dynamic_animations(self, dynamics: list[Motion.Dynamic]):
         bpy.context.scene.render.fps = 100
         bpy.ops.object.mode_set(mode='POSE')
-        obj = bpy.data.objects[f"Armature"]
+        obj = bpy.data.objects['Armature']
 
         for bone in obj.pose.bones:
             bone.rotation_mode = "XYZ"
@@ -192,7 +198,7 @@ class BlenderModel():
                 sub_bones = filter(lambda bone: bone.name.startswith(f"{dynamic.name}.") or bone.name == dynamic.name, obj.pose.bones)
                 for sub_bone in sub_bones:
                     if len(dynamic.rotations) % 3 != 0:
-                        print (f"Skipped {sub_bone.name}")
+                        print (f"Skipping {sub_bone.name}")
                         break
                     prev_angle = (0, 0, 0)
                     for timestamp, angle in zip(dynamic.timestamps, div_to_chunks(dynamic.rotations, 3)):
@@ -227,3 +233,17 @@ class BlenderModel():
                         last_timestamp = max(timestamp, last_timestamp)
 
         bpy.context.scene.frame_end = math.ceil(last_timestamp * 100)
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+    def add_static_animations(self, statics: list[Motion.Static]):
+        bpy.ops.object.mode_set(mode='POSE')
+        obj = bpy.data.objects['Armature']
+
+        for bone in obj.pose.bones:
+            bone.rotation_mode = "XYZ"
+        for static in statics:
+            if static.name in obj.pose.bones:
+                sub_bones = filter(lambda bone: bone.name.startswith(f"{static.name}.") or bone.name == static.name, obj.pose.bones)
+                for sub_bone in sub_bones:
+                    sub_bone.location = mathutils.Matrix(static.transform).translation
+                    sub_bone.rotation_euler = mathutils.Matrix(static.transform).decompose()[1].to_euler('XYZ')
