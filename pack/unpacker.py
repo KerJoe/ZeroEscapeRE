@@ -18,7 +18,6 @@ from pathlib import Path
 from argparse import ArgumentParser
 from pack import Pack
 from helper import *
-import os
 
 
 parser = ArgumentParser(description='Pack file unpacker')
@@ -47,20 +46,3 @@ with try_open(args.input_pack, "rb") as fi:
             fo.write(pack.read(fi, file))
 
         print (f"Extracted file {file_count+1}/{len(pack.files)}")
-
-    # abs_file_count = 0
-    # for directory_count, directory in enumerate(pack.directories):
-    #     if args.flat:
-    #         directory_path = args.output_directory
-    #     else:
-    #         directory_path = args.output_directory/f'{directory_count}-{directory.name_hash}'
-    #         if not os.path.isdir(directory_path):
-    #             os.mkdir(directory_path)
-
-    #     for file_count, file in enumerate(directory.files):
-    #         file_path = directory_path/f'{abs_file_count}-{file.name_hash}'
-    #         with try_open(file_path, 'wb') as fo:
-    #             fo.write(pack.read(fi, file))
-
-    #         abs_file_count += 1
-    #         print (f"Extracted file {file_count+1}/{len(directory.files)}, in directory {directory_count+1}/{len(pack.directories)}")
