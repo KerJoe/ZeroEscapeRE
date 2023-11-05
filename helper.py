@@ -45,9 +45,9 @@ def try_write_directory(path: str):
         if not os.path.isdir(path):
             print(f"Is a file: '{path}'")
             exit(1)
-    if not os.access(path, os.W_OK):
-        print(f"Directory cannot be written to: '{path}'")
-        exit(1)
+        if not os.access(path, os.W_OK):
+            print(f"Directory cannot be written to: '{path}'")
+            exit(1)
 
 class AccUnpack:
     """ Like built-in struct.unpack, but with position tracking """

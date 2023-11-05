@@ -29,7 +29,7 @@ The software is released under the GNU General Public License (GPL) which can be
 Nothing planed for now...
 
 ## Virtues Last Reward
-* [ ] PACK archive decompression
+* [x] PACK archive decompression
 * [ ] LUA decompilation
 * [x] Model Mesh Export
 * [x] Model Texture Export

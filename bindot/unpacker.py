@@ -18,7 +18,6 @@ from pathlib import Path
 from argparse import ArgumentParser
 from bindot import BinDot
 from helper import *
-import os
 
 
 parser = ArgumentParser(description='BinDot file unpacker')
@@ -33,8 +32,8 @@ bin_dot = BinDot()
 with try_open(args.input_bindot, "rb") as fi:
     bin_dot.open(fi, args.key)
 
-    if not os.path.isdir(args.output_directory):
-        os.mkdir(args.output_directory)
+    try_write_directory(args.output_directory)
+    args.output_directory.mkdir(exist_ok=True)
 
     abs_file_count = 0
     for directory_count, directory in enumerate(bin_dot.directories):
@@ -42,8 +41,8 @@ with try_open(args.input_bindot, "rb") as fi:
             directory_path = args.output_directory
         else:
             directory_path = args.output_directory/f'{directory_count}-{directory.name_hash}'
-            if not os.path.isdir(directory_path):
-                os.mkdir(directory_path)
+            try_write_directory(directory_path)
+            directory_path.mkdir(exist_ok=True)
 
         for file_count, file in enumerate(directory.files):
             file_path = directory_path/f'{abs_file_count}-{file.name_hash}'

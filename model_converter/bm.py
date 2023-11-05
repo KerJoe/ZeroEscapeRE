@@ -22,14 +22,12 @@ class BM:
     class Verts:
         geom_vert: (float, float, float) # 12 bytes
         norm_vert: (float, float, float) # 12 bytes
-        uv_vert:   (float, float)        # 12 bytes # First value is NaN
+        uv_vert:   (float, float)        # 12 bytes # First value is unused (NaN in character models, uninitialized in room models)
 
         def __init__(self, data: list[int]):
             self.geom_vert = (data[0], data[1], data[2])
             self.norm_vert = (data[3], data[4], data[5])
             self.uv_vert   = (data[7], data[8])
-
-            assert(math.isnan(data[6]))
 
     class Mesh:
         verts: list['BM.Verts']
