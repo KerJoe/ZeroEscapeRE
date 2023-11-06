@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 if [ -z "$1" ]; then
-    echo "ze2_data_en_us.bin path required"
+    echo "File path to ze2_data_en_us.bin required"
     exit 1
 fi
 

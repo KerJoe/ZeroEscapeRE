@@ -21,8 +21,6 @@ from typing import Callable
 c_decompress = import_pyx('c_decompress.pyx', __file__) # Faster Cython implementation
 
 class Pack:
-    decompress = py_decompress if not c_decompress else c_decompress.decompress
-
     def py_decompress(input_data: bytes) -> bytes:
         data = AccUnpack(input_data)
 
@@ -52,6 +50,7 @@ class Pack:
 
             if (data.offset >= len(input_data)):
                 return bytes(output_data)
+    decompress = py_decompress if not c_decompress else c_decompress.decompress
 
     class FileEntry:
         size: int
