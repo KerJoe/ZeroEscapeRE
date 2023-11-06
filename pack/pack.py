@@ -16,9 +16,14 @@
 
 from helper import *
 from io import IOBase
+from typing import Callable
+
+c_decompress = import_pyx('c_decompress.pyx', __file__) # Faster Cython implementation
 
 class Pack:
-    def decompress(input_data: bytes) -> bytearray:
+    decompress = py_decompress if not c_decompress else c_decompress.decompress
+
+    def py_decompress(input_data: bytes) -> bytes:
         data = AccUnpack(input_data)
 
         uncompressed_size = data.unpack('I')
@@ -42,11 +47,11 @@ class Pack:
                 backtrack_position = output_position - backtrack_amount_high * 256 - backtrack_amount_low - 1;
 
                 for count in range(copy_length + 2): # Can overlap
-                    output_data[output_position + count]  = output_data[backtrack_position + count]
+                    output_data[output_position + count] = output_data[backtrack_position + count]
                 output_position += copy_length + 2
 
             if (data.offset >= len(input_data)):
-                return output_data
+                return bytes(output_data)
 
     class FileEntry:
         size: int

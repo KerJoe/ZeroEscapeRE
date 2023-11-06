@@ -14,7 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import struct, os
+import struct, os, sys, importlib.util
+from pathlib import Path
 from typing import Generator
 
 
@@ -48,6 +49,25 @@ def try_write_directory(path: str):
         if not os.access(path, os.W_OK):
             print(f"Directory cannot be written to: '{path}'")
             exit(1)
+
+def import_pyx(path: str, relative_to_file: str=None) -> object:
+    from pyximport import pyxbuild
+
+    if relative_to_file:
+        path = str(Path(relative_to_file).parent/path)
+
+    module_name = Path(path).stem
+    try:
+        module_location = pyxbuild.pyx_to_dll(path, build_in_temp=True, pyxbuild_dir=str(Path(relative_to_file).parent/'__pycache__'))
+    except Exception:
+        return None
+
+    spec = importlib.util.spec_from_file_location(module_name, module_location)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+
+    return module
 
 class AccUnpack:
     """ Like built-in struct.unpack, but with position tracking """
