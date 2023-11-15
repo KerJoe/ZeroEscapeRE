@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import math
 from helper import *
 from treelib import Node, Tree
 
@@ -36,7 +35,7 @@ class BSN:
             for _ in range(texture_count):
                 data.unpack('52x')
                 has_texture = data.unpack("B")
-                assert(has_texture < 2)
+                assert has_texture < 2
 
                 if has_texture:
                     texture_name_size = data.unpack('I')
@@ -63,7 +62,7 @@ class BSN:
 
             print(f"Scene entry '{self.name}' of type '{self.type_name}':")
 
-            assert(data.unpack('I') == 0xFFFFFFFF)
+            assert data.unpack('I') == 0xFFFFFFFF
 
             self.offset = data.unpack('3f'); print(f"- Spacial offset: {self.offset}")
             self.rotation = data.unpack('3f'); print(f"- Rotation (degrees): {self.rotation}")
@@ -90,12 +89,11 @@ class BSN:
 
     scene_entries: Tree
 
-
-    def __init__(self, data_bytes):
+    def __init__(self, data_bytes: bytes):
         self.scene_entries = Tree()
         data = AccUnpack(data_bytes)
 
-        assert(data.unpack('I') == 1)
+        assert data.unpack('I') == 1
 
         BSN.SceneEntry(data, self.scene_entries)
         print('Scene tree:')

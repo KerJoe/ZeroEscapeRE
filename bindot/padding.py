@@ -30,17 +30,17 @@ args = parser.parse_args()
 
 
 if not os.path.isfile(args.filename_in):
-    print("Input file does not exist or is a folder.")
+    print('Input file does not exist or is a folder.')
     exit(1)
 
 if os.path.isdir(args.filename_out):
-    print("Output file is a folder.")
+    print('Output file is a folder.')
     exit(3)
 
 
 bin_dot = BinDot()
 
-with open(args.filename_in, "rb") as fi:
+with open(args.filename_in, 'rb') as fi:
     bin_dot.open(fi, args.key)
 
     patch_file_entry = None
@@ -53,12 +53,12 @@ with open(args.filename_in, "rb") as fi:
             continue
         break
     if not patch_file_entry:
-        print("Patch hash was not found in data file.")
+        print('Patch hash was not found in data file.')
         exit(4)
 
     real_size = patch_file_entry.size
     patch_file_entry.size = args.size
-    with open (args.filename_out, "wb") as fo:
+    with open (args.filename_out, 'wb') as fo:
         bin_dot.save(fo)
         patch_file_entry.size = real_size
         for directory_entry in bin_dot.directories:

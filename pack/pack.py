@@ -34,7 +34,7 @@ class Pack:
             if copy_length < 0x20: # Just copy bytes from input to output
                 output_data[output_position:output_position+copy_length+1] = data.unpack(f'{copy_length+1}s')
                 output_position += copy_length + 1
-            else: # Clone part of previously copied data back into output buffer
+            else: # Clone part of previously copied data back into the output buffer
                 backtrack_amount_high = copy_length & 0x1F
                 copy_length = copy_length >> 5
 
@@ -63,10 +63,10 @@ class Pack:
             self.size = data.unpack('I')
 
             self.is_compressed = data.unpack('B')
-            assert(self.is_compressed < 2)
+            assert self.is_compressed < 2
 
             name_size = data.unpack('B')
-            self.name = data.unpack(f'{name_size}s').decode("ascii")
+            self.name = data.unpack(f'{name_size}s').decode('ascii')
 
             self.absolute_position = absolute_position
 
@@ -78,7 +78,7 @@ class Pack:
         header = AccUnpack(pack_file.read(12))
 
         if header.unpack('4s') != b'PACK':
-            raise Exception('Unknown PACK file detected.')
+            raise Exception('Unknown PACK file detected')
 
         data_offset = header.unpack('I')
         entry_count = header.unpack('I')

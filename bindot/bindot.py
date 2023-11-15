@@ -23,19 +23,19 @@ import xor_cipher
 # A Zero Escape data file has a 'bin.' magic header
 # So let's make it the format name
 class BinDot:
-    # def crypt_basic(data: bytes, key: int, offset: int = 0) -> bytearray:
-    #     """ Zero Escape decryption/encryption algorithm """
-    #
-    #     output = bytearray()
-    #     key_split = [ (key >> (count * 8)) & 0xFF for count in range(4) ] # Split key into 4 bytes
-    #
-    #     for offset, dbyte in zip(range(offset, offset + len(data)), data):
-    #         output += (dbyte ^ key_split[offset & 0b11] ^ (offset & 0xFF)).to_bytes()
-    #
-    #     return output
+    def crypt_basic(data: bytes, key: int, offset: int = 0) -> bytearray:
+        """ Zero Escape decryption/encryption algorithm (vanilla python) """
+
+        output = bytearray()
+        key_split = [ (key >> (count * 8)) & 0xFF for count in range(4) ] # Split key into 4 bytes
+
+        for offset, dbyte in zip(range(offset, offset + len(data)), data):
+            output += (dbyte ^ key_split[offset & 0b11] ^ (offset & 0xFF)).to_bytes()
+
+        return output
 
     def crypt(data: bytes, key: int, offset: int = 0) -> bytes:
-        """ Zero Escape data decryption/encryption algorithm """
+        """ Zero Escape data decryption/encryption algorithm (xor module) """
 
         if offset:
             offset_bytes = bytes(range(offset & 0xFF, 256)) + bytes(range(0, offset & 0xFF)) # e.g. if offset = 254, then: 254 255 0 1 ... 253
@@ -119,28 +119,28 @@ class BinDot:
         if key is None:
             key = self.key
         if key is None:
-            # Auto detect file key
+            # Auto-detect file key
             if BinDot.decrypt(magic_enc, self.nnn_key) == b'bin.':
-                print ('999 BinDot file detected.')
+                print('999 BinDot file detected.')
                 self.key = self.nnn_key
             elif BinDot.decrypt(magic_enc, self.vlr_key) == b'bin.':
-                print ('VLR BinDot file detected.')
+                print('VLR BinDot file detected.')
                 self.key = self.vlr_key
             else:
-                raise Exception('Unknown BinDot file detected.')
+                raise Exception('Unknown BinDot file detected')
         else:
             self.key = key
-        assert(BinDot.decrypt(magic_enc, self.key) == b'bin.')
+        assert BinDot.decrypt(magic_enc, self.key) == b'bin.'
 
         header = AccUnpack(BinDot.decrypt(bindot_file.read(28), self.key, 4))
 
         self.dir_names_pos = header.unpack('I') # 4 bytes: Folder name hashes list offset
-        assert(self.dir_names_pos == 32)
+        assert self.dir_names_pos == 32
         self.file_names_pos = header.unpack('I') # 4 bytes: File name hashes list offset
         self.data_pos = header.unpack('Q') # 8 bytes: File data offset
 
         data_pos_copy = header.unpack('Q') # 4 bytes: Copy of data_pos
-        assert(self.data_pos == data_pos_copy)
+        assert self.data_pos == data_pos_copy
 
         header.unpack('4x') # 4 bytes: Padding
 
@@ -149,7 +149,7 @@ class BinDot:
 
         # Folder name hashes
         dir_names_offset = meta.offset
-        dir_names_byte_size = meta.unpack('I') # 4 bytes: Size of folder name hashes list in bytes (with padding and including this 16 byte header)
+        dir_names_byte_size = meta.unpack('I') # 4 bytes: Size of folder name hashes list in bytes (with padding and including this 16-byte header)
         dir_amount = meta.unpack('I') # 4 bytes: Amount of folders
         meta.unpack('8x') # 8 bytes: Padding
         dir_names = meta.unpack_list('I', dir_amount)
@@ -160,7 +160,7 @@ class BinDot:
 
         # File name hashes
         file_names_offset = meta.offset
-        file_names_byte_size = meta.unpack('I') # 4 bytes: Size of file name hashes list in bytes (with padding and including this 16 byte header)
+        file_names_byte_size = meta.unpack('I') # 4 bytes: Size of file name hashes list in bytes (with padding and including this 16-byte header)
         file_amount = meta.unpack('I') # 4 bytes: Amount of files
         meta.unpack('8x') # 8 bytes: Padding
         file_names = meta.unpack_list('I', file_amount)
@@ -171,7 +171,7 @@ class BinDot:
 
 
         for count, name in enumerate(dir_names):
-            assert(self.directories[count].name_hash == name) # Assert that hashes in list of folder hashes and folder allocation table are the same
+            assert self.directories[count].name_hash == name # Assert that hashes in a list of folder hashes and folder allocation table are the same
         for count, filename in enumerate(file_names):
             self.files[count].name_hash = filename
 

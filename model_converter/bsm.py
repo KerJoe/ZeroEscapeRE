@@ -42,9 +42,9 @@ class BSM:
             self.bone0_weight   = data[13]
             self.bone1_weight   = data[14]
 
-            assert(data[9] == data[11] == data[12])
-            assert(data[13] == data[15] == data[16])
-            assert(math.isnan(data[6]))
+            assert data[9] == data[11] == data[12]
+            assert data[13] == data[15] == data[16]
+            assert math.isnan(data[6])
 
     class Bone:
         internal_name: str
@@ -70,7 +70,7 @@ class BSM:
             self.bones.create_node('@', '@')
 
             bone_amount = data.unpack("I")
-            print (f"Model contains {bone_amount} bone(s):")
+            print(f"Model contains {bone_amount} bone(s):")
             for bone_count in range(bone_amount):
                 # First: Create a tree of bones all parented to root
                 bone = BSM.Bone(data)
@@ -85,7 +85,6 @@ class BSM:
                         self.bones.move_node(self.bones[child].identifier, self.bones[parent].identifier)
             else:
                 data.unpack("8x")
-
 
     class Animation:
         name: str
@@ -105,58 +104,58 @@ class BSM:
 
             vert_amount = data.unpack("I")
             self.verts = data.unpack_list("3f 3f 3f 4B 4f", vert_amount, BSM.Verts)
-            print (f"- {vert_amount} vertices")
+            print(f"- {vert_amount} vertices")
 
             data.unpack("4x")
 
             indc_amount = data.unpack("I")
             self.indcs = data.unpack_list("hhh", indc_amount//3)
-            print (f"- {indc_amount} indices")
+            print(f"- {indc_amount} indices")
 
             bone_amount = data.unpack("I")
             self.bones = data.unpack_list("I", bone_amount)
-            print (f"- {bone_amount} bone(s)")
+            print(f"- {bone_amount} bone(s)")
 
             data.unpack("116x")
 
             has_texture = data.unpack("B")
-            assert(has_texture < 2)
+            assert has_texture < 2
             if has_texture:
                 texture_name_size = data.unpack("I")
                 self.texture_name = data.unpack(f"{texture_name_size}s").decode("ascii")
-                print (f"- Texture: {self.texture_name}")
+                print(f"- Texture: {self.texture_name}")
                 data.unpack("12x")
 
             data.unpack("40x")
 
             self.has_extra_mesh = data.unpack("B")
-            assert(self.has_extra_mesh < 2)
+            assert self.has_extra_mesh < 2
             self.has_extra_mesh = bool(self.has_extra_mesh)
 
             self.animations = []
 
     class ExtraMesh(Mesh):
-        def __init__(self, data: AccUnpack, parent_texture_name):
+        def __init__(self, data: AccUnpack, parent_texture_name: str):
             data.unpack("12x")
 
             vert_amount = data.unpack("I")
             self.verts = data.unpack_list("3f 3f 3f 4B 4f", vert_amount, BSM.Verts)
-            print (f"- {vert_amount} vertices")
+            print(f"- {vert_amount} vertices")
 
             data.unpack("4x")
 
             indc_amount = data.unpack("I")
             self.indcs = data.unpack_list("hhh", indc_amount//3)
-            print (f"- {indc_amount} indices")
+            print(f"- {indc_amount} indices")
 
             bone_amount = data.unpack("I")
             self.bones = data.unpack_list("I", bone_amount)
-            print (f"- {bone_amount} bone(s)")
+            print(f"- {bone_amount} bone(s)")
 
             data.unpack("158x")
 
             self.texture_name = parent_texture_name
-            print (f"- Texture: {self.texture_name}")
+            print(f"- Texture: {self.texture_name}")
 
             self.has_extra_mesh = False
 
@@ -166,19 +165,18 @@ class BSM:
     meshes: list[Mesh]
     armature: Armature
 
-
-    def __init__(self, data_bytes):
+    def __init__(self, data_bytes: bytes):
         data = AccUnpack(data_bytes)
 
         mesh_amount = data.unpack("I")
         self.meshes: list[BSM.Mesh] = []
-        print (f"Model contains {mesh_amount} mesh(es):")
+        print(f"Model contains {mesh_amount} mesh(es):")
         for mesh_count in range(mesh_amount):
-            print (f"Mesh {mesh_count}:")
+            print(f"Mesh {mesh_count}:")
             new_mesh = BSM.Mesh(data)
             self.meshes += [ new_mesh ]
             if new_mesh.has_extra_mesh:
-                print (f"Extra mesh:")
+                print("Extra mesh:")
                 self.meshes += [ BSM.ExtraMesh(data, new_mesh.texture_name) ]
 
         self.armature = BSM.Armature(data)
@@ -186,10 +184,10 @@ class BSM:
         data.unpack("48x")
 
         animation_amount = data.unpack("I")
-        print (f"Model contains {animation_amount} animation(s):")
+        print(f"Model contains {animation_amount} animation(s):")
         for _ in range(animation_amount):
             animation_mesh_amount = data.unpack("I")
-            assert((animation_mesh_amount == mesh_amount) or (animation_mesh_amount == 0))
+            assert (animation_mesh_amount == mesh_amount) or (animation_mesh_amount == 0)
 
             for mesh_count in range(mesh_amount):
                 animation = BSM.Animation()
@@ -200,12 +198,12 @@ class BSM:
                 vert_data_amount = data.unpack("I")
                 animation.vert_list = data.unpack_list("3f", vert_data_amount)
 
-                assert(vert_ind_amount == vert_data_amount)
+                assert vert_ind_amount == vert_data_amount
 
                 self.meshes[mesh_count].animations += [ animation ]
 
         animation_name_amount = data.unpack("I")
-        assert(animation_amount == animation_name_amount)
+        assert animation_amount == animation_name_amount
         for animation_name_count in range(animation_name_amount):
             animation_name_size = data.unpack("I")
             animation_name = data.unpack(f"{animation_name_size}s").decode("ascii")

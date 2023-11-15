@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import math
 from helper import *
 
 
@@ -39,21 +38,21 @@ class BM:
 
             indc_amount = data.unpack("I")
             self.indcs = data.unpack_list("hhh", indc_amount//3)
-            print (f"- {indc_amount} indices")
+            print(f"- {indc_amount} indices")
 
             vert_amount = data.unpack("I")
             self.verts = data.unpack_list("3f 3f 3f", vert_amount, BM.Verts)
-            print (f"- {vert_amount} vertices")
+            print(f"- {vert_amount} vertices")
 
             data.unpack("52x")
 
             has_texture = data.unpack("B")
-            assert(has_texture < 2)
+            assert has_texture < 2
             self.texture_name = ""
             if has_texture:
                 texture_name_size = data.unpack("I")
                 self.texture_name = data.unpack(f"{texture_name_size}s").decode("ascii")
-                print (f"- Texture: {self.texture_name}")
+                print(f"- Texture: {self.texture_name}")
                 data.unpack("12x")
 
             data.unpack("24x")
@@ -61,14 +60,13 @@ class BM:
 
     meshes: list[Mesh]
 
-
-    def __init__(self, data_bytes):
+    def __init__(self, data_bytes: bytes):
         data = AccUnpack(data_bytes)
 
         mesh_amount = data.unpack("I")
         self.meshes = []
-        print (f"Model contains {mesh_amount} mesh(es):")
+        print(f"Model contains {mesh_amount} mesh(es):")
         for mesh_count in range(mesh_amount):
-            print (f"Mesh {mesh_count}:")
+            print(f"Mesh {mesh_count}:")
             new_mesh = BM.Mesh(data)
             self.meshes += [ new_mesh ]

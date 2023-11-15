@@ -1,6 +1,6 @@
 # Zero Escape: The Nonary Games / Reverse Engineering
 
-This project aims to allow extracting resources from data files of Zero Escape video game duology for PC.
+This project aims to allow extracting resources from data files of the Zero Escape video game duology for PC.
 
 ## Environment setup
 
@@ -14,7 +14,7 @@ pip install -r requirements.txt
 
 ## Model export
 
-Run `./auto_convert_ze2_models.sh <PATH TO ze2_data_en_us.bin>` to attempt to export all character models from the resource file.
+Run `./auto_convert_ze2_models.sh <path to ze2_data_en_us.bin>` to export all character and room models from the resource file.
 
 ## License
 The software is released under the GNU General Public License (GPL) which can be found in the file [`LICENSE.txt`](/LICENSE.txt) in the same directory as this file.
@@ -26,14 +26,15 @@ The software is released under the GNU General Public License (GPL) which can be
 
 ## 999: Nine Hours, Nine Persons, Nine Doors
 
-Nothing planed for now...
+Nothing planned for now...
 
 ## Virtues Last Reward
 * [x] PACK archive decompression
 * [ ] LUA decompilation
 * [x] Model Mesh Export
 * [x] Model Texture Export
-* [ ] Model Scene Export (WIP)
 * [x] Model Bone Export
-* [ ] Model Skeletal Animation Export (WIP)
+* [x] Model Skeletal Animation Export (WIP)
 * [x] Model Facial Animation Export
+* [x] Room export
+* [ ] Room scene export

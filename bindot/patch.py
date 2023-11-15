@@ -30,16 +30,16 @@ args = parser.parse_args()
 
 
 if not os.path.isfile(args.filename_data):
-    print("Input file does not exist or is a folder.")
+    print('Input file does not exist or is a folder.')
     exit(1)
 
 if not os.path.isfile(args.filename_patch):
-    print("Patch file does not exist or is a folder.")
+    print('Patch file does not exist or is a folder.')
     exit(2)
 
 
 bin_dot = BinDot()
-with open(args.filename_data, "rb") as fi:
+with open(args.filename_data, 'rb') as fi:
     bin_dot.open(fi, args.key)
 
 patch_file_entry = None
@@ -52,16 +52,16 @@ for directory_entry in bin_dot.directories:
         continue
     break
 if not patch_file_entry:
-    print("Patch hash was not found in data file.")
+    print('Patch hash was not found in data file.')
     exit(4)
 
-print(f"Entry size: {patch_file_entry.size} bytes")
+print(f'Entry size: {patch_file_entry.size} bytes')
 prev_size = patch_file_entry.size
 patch_file_entry.size = os.path.getsize(args.filename_patch)
 patch_file_entry.padding = prev_size - patch_file_entry.size
-with open (args.filename_data, "r+b") as fo:
+with open (args.filename_data, 'r+b') as fo:
     bin_dot.save(fo)
 
-    with open (args.filename_patch, "rb") as fpi:
+    with open (args.filename_patch, 'rb') as fpi:
         bin_dot.write(fpi.read(), fo, patch_file_entry)
-print(f"Done. Wrote: {os.path.getsize(args.filename_patch)} bytes.")
+print(f'Done. Wrote: {os.path.getsize(args.filename_patch)} bytes.')

@@ -29,7 +29,7 @@ args = parser.parse_args()
 
 
 bin_dot = BinDot()
-with try_open(args.input_bindot, "rb") as fi:
+with try_open(args.input_bindot, 'rb') as fi:
     bin_dot.open(fi, args.key)
 
     try_write_directory(args.output_directory)
@@ -50,4 +50,4 @@ with try_open(args.input_bindot, "rb") as fi:
                 fo.write(bin_dot.read(fi, file))
 
             abs_file_count += 1
-            print (f"Extracted file {file_count+1}/{len(directory.files)}, in directory {directory_count+1}/{len(bin_dot.directories)}")
+            print(f'Extracted file {file_count+1}/{len(directory.files)}, in directory {directory_count+1}/{len(bin_dot.directories)}')

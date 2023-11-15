@@ -28,7 +28,7 @@ args = parser.parse_args()
 
 
 pack = Pack()
-with try_open(args.input_pack, "rb") as fi:
+with try_open(args.input_pack, 'rb') as fi:
     pack.open(fi)
 
     try_write_directory(args.output_directory)
@@ -45,4 +45,4 @@ with try_open(args.input_pack, "rb") as fi:
         with try_open(filepath, 'wb') as fo:
             fo.write(pack.read(fi, file))
 
-        print (f"Extracted file {file_count+1}/{len(pack.files)}")
+        print(f'Extracted file {file_count+1}/{len(pack.files)}')

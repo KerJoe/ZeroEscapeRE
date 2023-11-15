@@ -30,10 +30,10 @@ args = parser.parse_args()
 
 
 bindot = BinDot()
-with try_open(args.input_bindot, "rb") as fi:
+with try_open(args.input_bindot, 'rb') as fi:
     bindot.open(fi, args.key)
 
-with try_open(args.output_bindot, "wb") as fo:
+with try_open(args.output_bindot, 'wb') as fo:
     abs_file_count = 0
     offset_count = 0
     file_path_list = []
@@ -60,4 +60,4 @@ with try_open(args.output_bindot, "wb") as fo:
     for file_count, file_path, file in zip(range(len(file_path_list)), file_path_list, file_entry_list):
         with try_open(file_path, 'rb') as fd:
             bindot.write(fd.read(), fo, file)
-        print (f"Repacked file {file_count+1}/{len(file_path_list)}")
+        print(f'Repacked file {file_count+1}/{len(file_path_list)}')

@@ -30,13 +30,27 @@ source .env/bin/activate
 mkdir workdir
 mkdir workdir/ze2_data_en_us
 mkdir workdir/converted_models
+mkdir workdir/converted_rooms
 mkdir workdir/extracted_models
+mkdir workdir/extracted_rooms
 
 python bindot/unpacker.py "$1" workdir/ze2_data_en_us
 
-MODEL_FILES="22-1425188142/1587-131694615 22-1425188142/1588-149960206 22-1425188142/1589-492857346 22-1425188142/1590-662806346 22-1425188142/1591-689670353 22-1425188142/1592-743994043 22-1425188142/1593-1526829868 22-1425188142/1594-1611492479 22-1425188142/1595-1780513493 22-1425188142/1596-1874134169 22-1425188142/1597-1984660750 22-1425188142/1598-2076631810"
+for FILE in $(find "workdir/ze2_data_en_us/13-781874508/" -type f); do
+    if [[ $(head -c 4 "${FILE}") == 'PACK' ]]; then
+        echo Extracting: ${FILE}
+        python pack/unpacker.py "${FILE}" workdir/extracted_rooms
+    fi
+done
 
-for MODEL in ${MODEL_FILES}; do
+for MODEL in "workdir/extracted_rooms/scenes/room/"*; do
+    MODEL_BASE=$(basename ${MODEL})
+    python model_converter/blender_exporter.py workdir/converted_rooms/${MODEL_BASE}.blend ${MODEL}/mdl/* ${MODEL}/tex/*
+done
+
+CHARACTER_MODEL_FILES="22-1425188142/1587-131694615 22-1425188142/1588-149960206 22-1425188142/1589-492857346 22-1425188142/1590-662806346 22-1425188142/1591-689670353 22-1425188142/1592-743994043 22-1425188142/1593-1526829868 22-1425188142/1594-1611492479 22-1425188142/1595-1780513493 22-1425188142/1596-1874134169 22-1425188142/1597-1984660750 22-1425188142/1598-2076631810"
+
+for MODEL in ${CHARACTER_MODEL_FILES}; do
     unzip -o -C "workdir/ze2_data_en_us/${MODEL}" -d workdir/extracted_models
 done
 
