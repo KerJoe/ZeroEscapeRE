@@ -28,7 +28,7 @@ class Pack:
         output_data = bytearray(uncompressed_size)
         output_position = 0
 
-        while(True):
+        while(data.offset < len(input_data)):
             copy_length = data.unpack('B')
 
             if copy_length < 0x20: # Just copy bytes from input to output
@@ -48,8 +48,8 @@ class Pack:
                     output_data[output_position + count] = output_data[backtrack_position + count]
                 output_position += copy_length + 2
 
-            if (data.offset >= len(input_data)):
-                return bytes(output_data)
+        return bytes(output_data)
+
     decompress = py_decompress if not c_decompress else c_decompress.decompress
 
     class FileEntry:

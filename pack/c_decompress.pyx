@@ -37,7 +37,7 @@ cpdef decompress(bytes input_data_bytes):
     input_position = 4
     output_position = 0
 
-    while(True):
+    while(input_position < compressed_size):
         copy_length = input_data[input_position]; input_position += 1
 
         if copy_length < 0x20: # Just copy bytes from input to output
@@ -60,7 +60,6 @@ cpdef decompress(bytes input_data_bytes):
                 memcpy(output_data + output_position, output_data + backtrack_position, copy_length + 2)
             output_position += copy_length + 2
 
-        if (input_position >= compressed_size):
-            output_data_bytes = PyBytes_FromStringAndSize(<char*>output_data, uncompressed_size)
-            free(output_data)
-            return output_data_bytes
+    output_data_bytes = PyBytes_FromStringAndSize(<char*>output_data, uncompressed_size)
+    free(output_data)
+    return output_data_bytes

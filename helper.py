@@ -33,8 +33,8 @@ def try_open(*args, **kwargs):
         exit(1)
 
 def try_read_directory(path: str):
-    if os.path.exists(path):
-        if not os.path.isdir(path):
+    if Path(path).exists():
+        if not Path(path).is_dir():
             print(f"Is a file: '{path}'")
             exit(1)
     if not os.access(path, os.R_OK):
@@ -42,8 +42,8 @@ def try_read_directory(path: str):
         exit(1)
 
 def try_write_directory(path: str):
-    if os.path.exists(path):
-        if not os.path.isdir(path):
+    if Path(path).exists():
+        if not Path(path).is_dir():
             print(f"Is a file: '{path}'")
             exit(1)
         if not os.access(path, os.W_OK):
