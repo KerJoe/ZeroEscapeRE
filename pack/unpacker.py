@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Pack unpacker.
 # Copyright (C) 2023 KerJoe.
 #

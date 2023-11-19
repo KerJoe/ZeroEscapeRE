@@ -1,5 +1,5 @@
-#!/bin/sh
-# Unluac wrapper for preconverting VLR to normal lua.
+#!/bin/bash
+# Unluac wrapper with preconvertion of VLR to normal lua.
 # Copyright (C) 2023 KerJoe.
 #
 # This program is free software: you can redistribute it and/or modify

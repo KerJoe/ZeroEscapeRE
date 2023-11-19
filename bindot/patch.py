@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Modify a single file in a BinDot file.
 # Copyright (C) 2023 KerJoe.
 #

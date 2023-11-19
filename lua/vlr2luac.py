@@ -1,4 +1,5 @@
-# Convert VLR lua bytecode into Regular lua bytecode
+#!/usr/bin/env python
+# Convert VLR lua bytecode into Regular lua bytecode.
 # Copyright (C) 2023 KerJoe.
 #
 # This program is free software: you can redistribute it and/or modify

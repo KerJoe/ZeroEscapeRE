@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Blender exporter for Zero Escape models.
 # Copyright (C) 2023 KerJoe.
 #

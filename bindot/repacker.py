@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Replace all file data in BinDot file.
 # Copyright (C) 2023 KerJoe.
 #

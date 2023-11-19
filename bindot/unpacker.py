@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Extract all files from BinDot file.
 # Copyright (C) 2023 KerJoe.
 #
