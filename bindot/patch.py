@@ -17,51 +17,70 @@
 from pathlib import Path
 from argparse import ArgumentParser
 from bindot import BinDot
-import os
 
 
-parser = ArgumentParser(description='Zero Escape data file patcher')
-parser.add_argument('filename_data', type=Path, help='Input data file path, for copying the main structure from')
-parser.add_argument('filename_patch', type=Path, help='File to be patched')
-parser.add_argument('hash_patch', type=int, help='Path hash of the patch file')
-parser.add_argument('-s', '--size', type=int, help='Amount of space to allocate for patched file entry, for faster packing')
+parser = ArgumentParser(description='BinDot file patcher')
+parser.add_argument('inout_bindot', type=Path, help='Path to the BinDot file which will be operated upon')
+parser.add_argument('input_patch', type=Path, help='File to be patched into the BinDot')
+parser.add_argument('input_hash', type=int, help='Hashed path of the file which data will be replaced')
+parser.add_argument('-s', '--size', type=int, help='Amount of space to allocate for the patched file entry, for future faster packing')
 parser.add_argument('-k', '--key', type=int, help='Decryption key, if not specified auto detected')
 args = parser.parse_args()
 
 
-if not os.path.isfile(args.filename_data):
-    print('Input file does not exist or is a folder.')
-    exit(1)
-
-if not os.path.isfile(args.filename_patch):
-    print('Patch file does not exist or is a folder.')
-    exit(2)
-
-
 bin_dot = BinDot()
-with open(args.filename_data, 'rb') as fi:
+with open(args.inout_bindot, 'rb') as fi:
     bin_dot.open(fi, args.key)
 
-patch_file_entry = None
-for directory_entry in bin_dot.directories:
-    for file_entry in directory_entry.files:
-        if file_entry.name_hash == args.hash_patch:
-            patch_file_entry = file_entry
-            break
+file_input_size = args.input_patch.stat().st_size
+file_output_size = file_input_size
+if args.size:
+    if args.size < file_input_size:
+        print("Requested allocation size is less than the actual file size, alocation size will be set to the file size")
     else:
-        continue
-    break
-if not patch_file_entry:
-    print('Patch hash was not found in data file.')
-    exit(4)
+        file_output_size = args.size
 
-print(f'Entry size: {patch_file_entry.size} bytes')
-prev_size = patch_file_entry.size
-patch_file_entry.size = os.path.getsize(args.filename_patch)
-patch_file_entry.padding = prev_size - patch_file_entry.size
-with open (args.filename_data, 'r+b') as fo:
-    bin_dot.save(fo)
+# Assert that file offsets are monotonic
+offset = -1
+for file in bin_dot.files:
+    assert file.offset > offset
+    offset = file.offset
 
-    with open (args.filename_patch, 'rb') as fpi:
-        bin_dot.write(fpi.read(), fo, patch_file_entry)
-print(f'Done. Wrote: {os.path.getsize(args.filename_patch)} bytes.')
+patch_file = None; next_file = None; next_file_count = None
+for file_count, file in enumerate(bin_dot.files):
+    if file.name_hash == args.input_hash:
+        patch_file = file
+        if file_count != len(bin_dot.files) - 1:
+            next_file_count = file_count + 1
+            next_file = bin_dot.files[next_file_count]
+        break
+if not patch_file:
+    print(f'No file with hash "{args.input_hash}" was found inside the BinDot')
+    exit(1)
+patch_file.size = file_input_size
+
+extra_space_needed = 0
+if next_file:
+    if file_output_size > next_file.offset - patch_file.offset:
+        extra_space_needed = file_output_size - (next_file.offset - patch_file.offset)
+        print(f'Expanding file by {extra_space_needed} bytes')
+        for file_count in range(next_file_count, len(bin_dot.files)):
+            bin_dot.files[file_count].offset += extra_space_needed
+
+with open(args.inout_bindot, 'r+b') as fo:
+    if extra_space_needed:
+        fo.seek(bin_dot.data_pos + next_file.offset - extra_space_needed)
+        data = fo.read()
+        fo.seek(bin_dot.data_pos + next_file.offset)
+        fo.write(data)
+        fo.seek(0)
+        bin_dot.save(fo, args.key)
+    fo.seek(bin_dot.data_pos + file.offset)
+    with open(args.input_patch, 'rb') as fi:
+        bin_dot.write(fi.read(), fo, patch_file)
+
+print(f'Wrote: {file_input_size} bytes')
+if next_file:
+    print(f'Padding: {next_file.offset - patch_file.offset - patch_file.size} bytes')
+else:
+    print('Padding: - (last file)')

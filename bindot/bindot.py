@@ -79,15 +79,12 @@ class BinDot:
         flags: int
         name_hash: int
 
-        padding: int
-
         def __init__(self, data):
             self.offset = data[0]
             self.key = data[1]
             self.size = data[2]
             self.index = data[3]
             self.flags = data[4]
-            self.padding = 0
 
 
     class DirEntry:
@@ -121,10 +118,10 @@ class BinDot:
         if key is None:
             # Auto-detect file key
             if BinDot.decrypt(magic_enc, self.nnn_key) == b'bin.':
-                print('999 BinDot file detected.')
+                print('999 BinDot file detected')
                 self.key = self.nnn_key
             elif BinDot.decrypt(magic_enc, self.vlr_key) == b'bin.':
-                print('VLR BinDot file detected.')
+                print('VLR BinDot file detected')
                 self.key = self.vlr_key
             else:
                 raise Exception('Unknown BinDot file detected')
