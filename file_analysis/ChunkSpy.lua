@@ -854,7 +854,8 @@ function DescribeInst(inst, pos, func)
   ---------------------------------------------------------------
   else
     -- add your VM extensions here
-    Operand = string.format("OP %d", inst.OP)
+    Operand = OperandABC(inst)
+    Comment = string.format("Opcode #%d", inst.OP)
   end
   ---------------------------------------------------------------
   -- compose operands and comments
