@@ -30,7 +30,7 @@ Nothing planned for now...
 
 ## Virtues Last Reward
 * [x] PACK archive decompression
-* [ ] LUA decompilation
+* [x] LUA decompilation
 * [x] Model Mesh Export
 * [x] Model Texture Export
 * [x] Model Bone Export
