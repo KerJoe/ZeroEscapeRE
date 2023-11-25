@@ -1,0 +1,172 @@
+Common subdirectories: script_txt/ae and script_pt/ae
+diff --color -uZ script_txt/base.lua script_pt/base.lua
+--- script_txt/base.lua	2023-11-26 00:05:40.324159018 +0400
++++ script_pt/base.lua	2023-11-21 21:09:45.957533947 +0400
+@@ -1733,9 +1733,6 @@
+   flag.archive.minigame_tab = nil
+   local fs = flag.showTouchPoint
+   flag.showTouchPoint = true
+-  if GAME.debug == true then
+-    return 1
+-  end
+   if GAME.select_random == true then
+     file = string.lower(string.gsub(file, ".lua$", ""))
+     if file == "mgnobomb" then
+diff --color -uZ script_txt/cmd.lua script_pt/cmd.lua
+--- script_txt/cmd.lua	2023-11-26 00:05:48.206147835 +0400
++++ script_pt/cmd.lua	2023-11-26 00:01:49.547488246 +0400
+@@ -3491,6 +3491,15 @@
+   if l ~= nil then
+     lang = i18n.get_game_text(l)
+   end
++
++  if lang == nil and no ~= nil and text == nil and menu == nil then
++    l = nil
++  end
++  if lang == nil and no == nil and text == nil and menu == nil then
++    no = l .. "<K><P>"
++    l = nil
++  end
++
+   local n = name
+   local m = text
+   if menu == nil then
+diff --color -uZ script_txt/debug.lua script_pt/debug.lua
+--- script_txt/debug.lua	2023-11-26 00:05:41.573157246 +0400
++++ script_pt/debug.lua	2023-11-25 23:47:41.339757768 +0400
+@@ -403,12 +403,12 @@
+     end
+   end
+   
+-  win.talk = ui.button(win.static1, 12, 600, 200, 60, "TALK")
++  win.talk = ui.button(win.static1, 12, 400, 200, 60, "TALK")
+   
+   function win.talk:onClick()
+   end
+   
+-  win.face = ui.button(win.static1, 212, 600, 200, 60, "FACE")
++  win.face = ui.button(win.static1, 212, 400, 200, 60, "FACE")
+   
+   function win.face:onClick()
+     face = face == false
+@@ -608,7 +608,7 @@
+   local win = ui.debugList("AE CLIP", files, 15)
+   
+   function win:onSelect(s)
+-    ae.proc(ULCD, s[2], 999999)
++    ae.proc(ULCD, ae[s[2]], 999999)
+     gc()
+   end
+   
+@@ -695,9 +695,12 @@
+     return a < b
+   end)
+   BG:camera_set(camera[1])
+-  local win = ui.title(ULCD, "ビュウワー")
+-  win.static1 = ui.static(win, 0, ui.TITLE_HEIGHT, L_SCREEN_WIDTH, 683)
+-  win.list = ui.listBox(win.static1, 10, 12, L_SCREEN_WIDTH - 20, 17, camera)
++  local base = Layer()
++  base:addTo(ULCD)
++  base.depth = DEPTH_MENU + 9000
++  local win = ui.title(base, "ビュウワー")
++  win.static1 = ui.static(win, 0, ui.TITLE_HEIGHT, L_SCREEN_WIDTH, 100)
++  win.list = ui.listBox(win.static1, 10, 12, L_SCREEN_WIDTH - 20, 3, camera)
+   
+   function win.list:onSelect(s)
+     BG:camera_set(s[2])
+@@ -1020,8 +1023,8 @@
+     NOVEL:clear()
+     NOVEL:setFont(FONT.NOVEL)
+     NOVEL:setText("俺はふらふらとよろめきながら窓へと駆け寄った。")
+-    SYSMES.mes.font = FONT.SYSTEM
+-    SYSMES:setText("システムメッセージです。")
++    SYSMES.font = FONT.SYSTEM
++    SYSMES:set("システムメッセージです。")
+   end
+   update()
+   local font = {
+@@ -1031,9 +1034,9 @@
+     "SYSTEM"
+   }
+   local font_index = 1
+-  local win = ui.debugList("フォント設定", getFileList("fonts", "dat"), 15)
++  local win = ui.debugList("フォント設定", getFileList("fonts", "dat"), 15); win.depth = DEPTH_NOVEL_FILTER
+   local w = 960
+-  win.static2 = ui.static(win, 10, 630, w - 20, 83)
++  win.static2 = ui.static(win, 10, 400, w - 20, 83)
+   x = 10
+   y = 9
+   win.button0 = ui.button(win.static2, x, y, 200, 60, "MESSAGE")
+@@ -1125,6 +1128,7 @@
+     CHARA:hide()
+     MES:hide()
+   end
++  novel.setSkipMode(1)
+   while true do
+     PIC:fill(color(255, 30, 130, 220))
+     KEI:set(TSUUJYOU, CENTER)
+diff --color -uZ script_txt/main.lua script_pt/main.lua
+--- script_txt/main.lua	2023-11-26 00:05:43.608154358 +0400
++++ script_pt/main.lua	2023-11-25 23:56:21.018964593 +0400
+@@ -308,6 +308,7 @@
+   sleep_start("script")
+   doscript("system/debug_flag.lua")
+   require_script("system/flag")
++  flag.RELEASE = false
+   require_script("system/main_flow")
+   doscript("cmd.lua")
+   require_script("ui")
+@@ -345,10 +346,11 @@
+   doscript("sound.lua")
+   sleep("script")
+   key_information.initialize()
++  GAME.debug = true
+   GAME:start()
++  flag.RELEASE = false
+   init()
+   GAME:start2()
+-  GAME.debug = false
+   perm_set()
+   if SAVE_DATA0 == nil or string.len(SAVE_DATA0) == 0 then
+     root_thread = thread.create(update)
+@@ -659,9 +661,10 @@
+   end
+ end
+ 
+-function novel_thread_create(func)
+-  novel_thread = thread.create(func, nil, root_thread)
++function novel_thread_create(func, arg)
++  novel_thread = thread.create(func, arg, root_thread)
+   novel_thread.func_ = func
++  novel_thread.arg_ = arg
+ end
+ 
+ function novel_thread_terminate(func)
+diff --color -uZ script_txt/test_script.lua script_pt/test_script.lua
+--- script_txt/test_script.lua	2023-11-26 00:05:46.741149912 +0400
++++ script_pt/test_script.lua	2023-11-25 23:49:50.027554404 +0400
+@@ -517,9 +517,9 @@
+ 
+ function test_texture()
+   BG:load("ab_room")
+-  BG:camera_set("camera_ab_zoom_00")
++  BG:camera_set("camera_ab_zoom_00A")
+   talk("Ｋ", "テクスチャを変更します。")
+-  abCONTROLBUTTONA00:setTexture(tex_abCONTROLBUTTONA00_ON)
++  abCONTROLBUTTONA00:setTexture(tex_abCONTROLBUTTON00_ON)
+   talk("Ｋ", "テクスチャを元にもどします。")
+   abCONTROLBUTTONA00:setTexture()
+   talk("Ｋ", "終了")
+@@ -1034,7 +1034,11 @@
+       {"faceSlide", test_faceSlide},
+       {"aroundCam", test_aroundCam}
+     }
+-    local r = ui.debugListProc("コマンドメニュー", items)
++    local base = Layer()
++    base:addTo(ULCD)
++    base.depth = DEPTH_MENU + 9000
++    novel.setSkipMode(1)
++    local r = ui.debugListProc("コマンドメニュー", items, base)
+     if r then
+       items[r[1]][2]()
+       novel.menu:hide()

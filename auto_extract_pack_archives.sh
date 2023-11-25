@@ -16,23 +16,24 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 if [ -z "$1" ]; then
-    echo "Folder path to extracted VLR files required"
+    echo "Folder path to the extracted VLR files required"
     exit 1
 fi
+INPUT=$(realpath "$1")
 
 # Go to script directory
 DIR="$(dirname -- "${BASH_SOURCE[0]}")"
 DIR="$(realpath -e -- "$DIR")"
 cd ${DIR}
 
-source ../.env/bin/activate
+source .venv/bin/activate
 
 mkdir workdir
 mkdir workdir/pack
 
-for file in $(find "$1" -type f); do
-    if [[ $(head -c 4 "${file}") == 'PACK' ]]; then
-        echo Extracting: ${file}
-        python pack/unpacker.py "${file}" workdir/pack
+for FILE in $(find "${INPUT}" -type f); do
+    if [[ $(head -c 4 "${FILE}") == 'PACK' ]]; then
+        echo Extracting: ${FILE}
+        pack/unpacker.py "${FILE}" workdir/pack
     fi
 done

@@ -19,13 +19,15 @@ if [ -z "$1" ]; then
     echo "Luac file required"
     exit 1
 fi
+INPUT=$(realpath $1)
 
 # Get script directory
 DIR="$(dirname -- "${BASH_SOURCE[0]}")"
 DIR="$(realpath -e -- "$DIR")"
+cd ${DIR}
 
-source ${DIR}/../.env/bin/activate
+source ../.venv/bin/activate
 
-python ${DIR}/../lua/vlr2luac.py $1 /tmp/$(basename $1)
+python ../lua/vlr2luac.py ${INPUT} /tmp/$(basename ${INPUT})
 
-java -jar ${DIR}/unluac.jar --rawstring /tmp/$(basename $1)
+java -jar unluac.jar --rawstring /tmp/$(basename ${INPUT})

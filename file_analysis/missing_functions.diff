@@ -1,0 +1,473 @@
+diff --color -uZ a/cmd.lua b/cmd.lua
+--- a/cmd.lua	2023-11-25 22:26:47.985172674 +0400
++++ b/cmd.lua	2023-11-23 18:47:40.403824291 +0400
+@@ -3288,7 +3288,99 @@
+   return lines
+ end
+
+-function talk_set()
++function talk_set(n, l, m)
++  NOVEL:hide()
++  MES:show()
++  MES.tag:setTextEx(n)
++
++  local cs, chara_name = nil, nil
++  local sync = false
++
++  MES.MESSAGE.mes.onPut = nil
++  if GAME.voice_skip == false then
++    if l ~= nil then
++      local dir = string.match(l, "(%w+_%w+)_%w+_.+")
++      do
++        chara_name = string.match(l, "%w+_%w+_(%w+)_.+")
++        if chara_name == "akane" then
++          chara_name = "murasaki"
++        end
++        if GAME.sound_archive ~= nil and GAME.sound_archive:find(i18n.get_audio_file_suffix()) == nil then
++          removeFileArchive(GAME.sound_archive)
++          GAME.sound_archive = "sound/voice/" .. dir .. i18n.get_audio_file_suffix() .. ".packs"
++          addFileArchive_(GAME.sound_archive, false)
++        end
++        local sound_file = nil
++        if GAME.sound_archive ~= nil and GAME.sound_archive:find("s77_77") == nil then
++          sound_file = string.format("%s/%s", dir, l)
++        else
++          sound_file = string.format("s77_77/%s", l)
++        end
++        if FS:existFile(path("sound/voice/" .. sound_file .. ".ogg")) == true then
++          VOICE:load(sound_file)
++          while VOICE:isPrepared() == false do
++            thread.yield()
++          end
++          local lipsync_file = "sound/voice/extra/" .. l .. ".xml"
++          if not FS:existFile(path(lipsync_file)) then
++            lipsync_file = "sound/voice/" .. sound_file .. ".xml"
++            if not FS:existFile(path(lipsync_file)) then
++              lipsync_file = nil
++            end
++          end
++          if lipsync_file ~= nil then
++            sync = true
++            local data = LipySyncData(lipsync_file)
++
++            MES.MESSAGE.mes:setLipSync(data, m)
++            cs = CHARA:getChara(chara_name)
++            if cs ~= nil then
++              for _, c in pairs(cs) do
++                c:setLipSync(data)
++              end
++            end
++            do
++              VOICE:play(sound_file)
++            end
++          end
++        end
++        do
++          do
++            if sync == false then
++              local c = CHARA:getCharaByName(n)
++
++              if c ~= nil then
++                MES.MESSAGE.mes.time_se = nil
++                MES.MESSAGE.mes.onPut = function(self)
++                  if c.id ~= "sigma" and c.lipAnimation == nil then
++                    c:setLipSync2(1)
++                  end
++                  if (self.time_se == nil or TIMER:getTime() > self.time_se) and c.se ~= nil then
++                    SE:stop(c.se)
++                    SE:play(c.se)
++                    self.time_se = TIMER:getTime() + math.random(60, 90)
++                  end
++                  if c.id ~= "sigma" and c.lipAnimation ~= nil and (self.time2 == nil or TIMER:getTime() - self.time2 > 50) then
++                    self.time2 = TIMER:getTime()
++                    local t = controlGetTimePos(c.lipAnimation)
++                    if 0.2 < t then
++                      t = 0.4 - t
++                    end
++                    if t < 0 then
++                      t = 0
++                    end
++                    c.lipAnimation:controlSetTimePos(t)
++                    c.lipAnimation:controlPlayStart()
++                  end
++                end
++              end
++            end
++            return chara_name
++          end
++        end
++      end
++    end
++  end
+ end
+
+ function talk_sub(n, l, m, menu)
+diff --color -uZ a/start.lua b/start.lua
+--- a/start.lua	2023-11-25 22:26:53.399173116 +0400
++++ b/start.lua	2023-11-21 14:54:51.971769327 +0400
+@@ -164,6 +164,365 @@
+ end
+
+ function menu()
++  SE:play("SE_SYS_TITLE")
++  FADE_U:black()
++  FADE_L:black()
++  FADE_U:fadeIn(60, false)
++  FADE_L:fadeIn(60, false)
++
++  local sub = Layer()
++  sub:addTo(ULCD)
++  sub.depth = 100
++  sub.handleEvent = true
++
++  local loop_f = true
++  local click_f = false
++  local cur = 1
++  local num = nil
++  local ret = 0
++  local B0, B1, B2 = nil, nil, nil
++  local confirm_exit = false
++
++  while loop_f do
++    cur = 1
++    local exist, data, error = save.data_check()
++    print(error)
++
++    B0 = ui.sprite(ULCD, 0, 0, TITLE_IMAGE)
++    if flag.TRIAL ~= true then
++      B1 = ui.sprite(ULCD, 0, 0, "pic/title/bg")
++      print("bg_production")
++    else
++      B1 = ui.sprite(ULCD, 0, 0, "pic/title/bg_trial")
++      print("bg_trial")
++    end
++    B2 = ui.sprite(ULCD, 0, 514, COPYRIGHT_IMAGE)
++    B1.depth = 96
++    B2.depth = 97
++    B0.depth = 98
++    local y = 320
++    if exist == true then
++      y = 384
++    end
++    sub.base = Layer()
++
++    sub.base:addTo(sub)
++    sub.base.button = {}
++
++    local function focus()
++      for i = 1, num do
++        if i ~= cur then
++          sub.base.button[i]:set_focus(false)
++        else
++          sub.base.button[cur]:set_focus(true)
++        end
++      end
++    end
++
++    local function panel(type_, id, y, caption)
++      local obj = Layer()
++      obj.align = Align.LEFT + Align.TOP
++      obj:setPos(0, y)
++      obj.handleEvent = true
++      obj:addTo(sub.base)
++      obj.a = ui.sprite(obj, 0, 0, "pic/title/frame")
++      obj.t = ui.text(obj, 0, 12, 900, 32, caption)
++      obj.t.align = Align.H_CENTER + Align.TOP
++      obj.sel = ui.sprite(obj, 202, 3, "pic/title/select")
++      obj.a.handleEvent = true
++      obj.sel.alpha = 0
++      obj.type_ = type_
++
++      function obj.a:onClick()
++        if PLATFORM_STEAM == true and confirm_exit == true then
++          return
++        end
++        print("click", id)
++        cur = id
++        click_f = true
++      end
++
++      function obj:set_focus(b)
++        local function onSet(p)
++          self.sel.alpha = p
++        end
++
++        if b == true then
++          self.sel:show()
++          move(self.sel, self.sel.alpha, 255, 10, onSet, false)
++        else
++          self.sel:hide()
++        end
++      end
++
++      function obj:flash()
++        SE:play("SE_SYS_START")
++        obj.f = ui.sprite(obj, 260, -8, "pic/title/flash")
++        obj.f.add = 1
++
++        local function onSet2(p)
++          obj.f.alpha = p
++        end
++
++        move(self, 0, 255, 12, onSet2)
++        move(self, 255, 0, 12, onSet2)
++        cleanup(self.f)
++        self.f = nil
++        gc()
++      end
++
++      return obj
++    end
++
++    if error == true then
++      y = 288
++      sub.base.button[1] = panel(1, 1, y, i18n.get_system_text("start_0001"))
++
++      y = y + 64
++      sub.base.button[2] = panel(4, 2, y, i18n.get_system_text("start_0009"))
++
++      y = y + 64
++      sub.base.button[3] = panel(3, 3, y, i18n.get_system_text("start_0002"))
++
++      num = 3
++      cur = 1
++    else
++      if exist == true then
++        y = 284
++        sub.base.button[1] = panel(1, 1, y, i18n.get_system_text("start_0003"))
++
++        y = y + 58
++        sub.base.button[2] = panel(2, 2, y, i18n.get_system_text("start_0004"))
++
++        y = y + 58
++        sub.base.button[3] = panel(4, 3, y, i18n.get_system_text("start_0009"))
++
++        y = y + 58
++        sub.base.button[4] = panel(3, 4, y, i18n.get_system_text("start_0005"))
++
++        num = 4
++        cur = 2
++      else
++        if flag.TRIAL == false then
++          y = 384
++          sub.base.button[1] = panel(1, 1, y, i18n.get_system_text("start_0006"))
++
++          y = y + 64
++          sub.base.button[2] = panel(4, 2, y, i18n.get_system_text("start_0009"))
++
++          num = 2
++          cur = 1
++        else
++          y = 384
++          sub.base.button[1] = panel(1, 1, y, i18n.get_system_text("start_0007"))
++
++          y = y + 64
++          sub.base.button[1].pad = PAD.A
++          sub.prompt = ui.text(sub, 0, -48, 1000, 100, i18n.get_system_text("start_trial"))
++
++          sub.prompt.align = Align.H_CENTER + Align.BOTTOM
++          sub.prompt.state = 0
++          sub.prompt.alpha = 0
++          sub.prompt.disable = false
++          sub.prompt.onUpdate_ = function(self)
++            local function onSet(p, finish)
++              self.alpha = p
++
++              if finish == true then
++                self.state = self.state + 1
++              end
++            end
++
++            if self.state == 0 then
++              move(self, 0, 255, 20, onSet, false)
++              self.state = 1
++            elseif self.state == 2 then
++              move(self, 255, 0, 20, onSet, false)
++              self.state = 3
++            elseif self.state == 4 and self.disable ~= true then
++              self.state = 0
++            end
++          end
++
++          addUpdate("blink", sub.prompt, sub.prompt.onUpdate_, false)
++          num = 1
++          cur = 1
++        end
++      end
++    end
++    focus(cur)
++    while true do
++      click_f = false
++      local lcur = cur
++      do
++        local timer = nil
++        local reset = function()
++          timer = TIMER:getTime()
++        end
++
++        reset()
++
++        sub.base.focus = true
++        while 1 do
++          if PLATFORM_STEAM == true and INPUT:trigger(PAD.B) then
++            SE:play("SE_SYS_DECISION")
++            confirm_exit = true
++            local ret = certify(i18n.get_system_text("sysmes_0999"), 2)
++            confirm_exit = false
++            if ret == 0 then
++              GAME:exit()
++            end
++          end
++          do
++            if INPUT:press(PAD.A) or INPUT:press(PAD.B) or INPUT:press(PAD.X) or INPUT:press(PAD.Y) or INPUT:press(PAD.LEFT) or INPUT:press(PAD.RIGHT) or INPUT:press(PAD.UP) or INPUT:press(PAD.DOWN) or INPUT:press(PAD.L) or INPUT:press(PAD.R) or INPUT:press(PAD.START) or INPUT.home == true or INPUT.stick == true or INPUT.touch == true then
++              printf("reset\n")
++              reset()
++            end
++
++            if flag.TRIAL == false and TIMER:getTime() - timer > 60000 then
++              loop_f = false
++              ret = 1
++              break
++            end
++
++            if TIMER:getTime() - timer <= 120000 or click_f == false then
++              if INPUT:trigger(PAD.DOWN) or INPUT:trigger(PAD.STICK_DOWN) or INPUT:trigger(PAD.R_STICK_DOWN) then
++                cur = cur + 1
++                if num < cur then
++                  cur = 1
++                end
++              else
++                if INPUT:trigger(PAD.UP) or INPUT:trigger(PAD.STICK_UP) or INPUT:trigger(PAD.R_STICK_UP) then
++                  cur = cur - 1
++                  if cur <= 0 then
++                    cur = num
++                  end
++                end
++              end
++            end
++            if INPUT:trigger(PAD.A) then
++              reset()
++              click_f = true
++            end
++            if lcur ~= cur then
++              reset()
++              lcur = cur
++              if click_f == false then
++                SE:play("SE_SYS_CURSOR")
++              end
++              focus()
++            end
++
++            if click_f == true then
++              if flag.TRIAL == true then
++                sub.prompt.disable = true
++              end
++
++              sub.base.focus = false
++              focus()
++
++              sub.base.button[cur]:flash()
++              break
++            end
++
++            thread.yield()
++          end
++        end
++        reset()
++        if ret == 0 then
++          local type_ = sub.base.button[cur].type_
++          print(type_)
++          if type_ == 1 then
++            break
++          else
++            if type_ == 2 then
++              CAPTURE_SUB_BG:capture(DEPTH_CAPTURE, SUB_BG_TEXTURE)
++
++              thread.wait_frame(1)
++              sub:hide()
++
++              save.load()
++              sub:show()
++              iphone_fade(sub, false)
++            else
++              if type_ == 3 then
++                CAPTURE_SUB_BG:capture(DEPTH_CAPTURE, SUB_BG_TEXTURE)
++
++                thread.wait_frame(1)
++                sub:hide()
++                local r = save.erase()
++                sub:show()
++                iphone_fade(sub, false)
++                if r == true then
++                  break
++                end
++              else
++                do
++                  do
++                    do
++                      if type_ == 4 then
++                        CAPTURE_SUB_BG:capture(DEPTH_CAPTURE, SUB_BG_TEXTURE)
++
++                        thread.wait_frame(1)
++                        sub:hide()
++
++                        option.menu()
++                        sub:show()
++                        iphone_fade(sub, false)
++                      end
++                      break
++                    end
++                  end
++                end
++              end
++            end
++          end
++        end
++      end
++    end
++    if ret == 0 then
++      local type_ = sub.base.button[cur].type_
++      if type_ == 1 then
++        wait(15)
++        loop_f = false
++      else
++        if type_ == 3 then
++          local onSet = function(p)
++            B0.alpha = p
++            B1.alpha = p
++            B2.alpha = p
++            sub.base.alpha = p
++          end
++
++          move(B0, 255, 0, 30, onSet)
++          cleanup(sub.base)
++          cleanup(B0)
++          cleanup(B1)
++          cleanup(B2)
++          B0, B1, B2 = nil
++          sub.base = nil
++        end
++      end
++    end
++    do
++      do
++        gc()
++      end
++    end
++  end
++  wait(60)
++  async()
++  FADE_U:fadeOut(60)
++  FADE_L:fadeOut(60)
++  sync()
++  cleanup(sub)
++  sub = nil
++  cleanup(B0)
++  cleanup(B1)
++  cleanup(B2)
++  B0, B1, B2 = nil
++  gc()
++  return ret
+ end
+
+ function title(tf)

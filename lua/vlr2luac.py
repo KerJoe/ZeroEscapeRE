@@ -30,20 +30,25 @@ with try_open(args.input_file, 'rb') as fi:
     lua_in = fi.read()
     luac = Luac(lua_in)
 
-    # VLR bytecode has 2 instuction added IN THE MIDDLE of the regular lua bytecode list
-    # These instructions (0x17 and 0x18) don't appear to be used
-    # To convert to regular lua we must decrement their opcode number by 2 after the insertion point
-    def traverse(func: Luac.Function):
-        for code_count in range(len(func.code)):
-            opc = func.code[code_count] & 0x3F
-            if opc > 0x16:
-                if opc > 0x27 or opc == 0x17 or opc == 0x18:
-                    raise Exception(f'Unknown opcode: {opc}')
+# VLR bytecode has 2 instuction added IN THE MIDDLE of the regular lua bytecode list
+# Instruction 0x17 is NOP - does nothing (not yet encountered)
+# Instruciont 0x18 is DJMP B C - perform a differential jump (PC += RK(C) - RK(B) - 2)
+# To convert to regular lua we must decrement their opcode number by 2 after the insertion point
+def traverse(func: Luac.Function):
+    for code_count in range(len(func.code)):
+        opc = func.code[code_count] & 0x3F
+        if opc > 0x16:
+            if opc > 0x27:
+                raise Exception(f'Unknown opcode: {opc}')
+            elif opc == 0x17 or opc == 0x18:
+                print(f'Dummied out opcode {opc}')
+                func.code[code_count] = 0
+            else:
                 func.code[code_count] -= 2
-        for subfunc in func.funcs:
-            traverse(subfunc)
-    traverse(luac.func)
+    for subfunc in func.funcs:
+        traverse(subfunc)
+traverse(luac.func)
 
+with try_open(args.output_file, 'wb') as fo:
     lua_out = luac.pack()
-    with try_open(args.output_file, 'wb') as fo:
-        fo.write(lua_out)
+    fo.write(lua_out)
