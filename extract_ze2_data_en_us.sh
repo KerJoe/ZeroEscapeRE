@@ -1,5 +1,5 @@
 #!/bin/bash
-# Batch PACK extractor script.
+# Extract a ze2_data_en_us.bin into workdir.
 # Copyright (C) 2023 KerJoe.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,6 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+if [ -z "$1" ]; then
+    echo "File path to ze2_data_en_us.bin required"
+    exit 1
+fi
+INPUT=$(realpath "$1")
+
 # Go to script directory
 DIR="$(dirname -- "${BASH_SOURCE[0]}")"
 DIR="$(realpath -e -- "$DIR")"
@@ -23,11 +29,6 @@ cd ${DIR}
 source .venv/bin/activate
 
 mkdir workdir
-mkdir workdir/pack
+mkdir workdir/ze2_data_en_us
 
-for FILE in $(find "workdir/ze2_data_en_us" -type f); do
-    if [[ $(head -c 4 "${FILE}") == 'PACK' ]]; then
-        echo Extracting: ${FILE}
-        pack/unpacker.py "${FILE}" workdir/pack
-    fi
-done
+bindot/unpacker.py "${INPUT}" workdir/ze2_data_en_us

@@ -15,7 +15,11 @@ pip install -e `realpath helper`
 
 ## Model export
 
-Run `./auto_convert_ze2_models.sh <path to ze2_data_en_us.bin>` to export all character and room models from the resource file.
+Run `./extract_ze2_data_en_us <path to ze2_data_en_us.bin>; ./auto_convert_ze2_models.sh` to export all character and room models from the resource file into `workdir/extracted_models` and `workdir/extracted_rooms`.
+
+## Enable debug mode
+
+Run `./extract_ze2_data_en_us <path to ze2_data_en_us.bin>; ./auto_decompile_lua_scripts.sh; ./enable_debug_mode_ze2.sh <path to ze2_data_en_us.bin> <path to luac version 5.1 for x86-32>` to enable the debug menu.
 
 ## License
 The software is released under the GNU General Public License (GPL) which can be found in the file [`LICENSE.txt`](/LICENSE.txt) in the same directory as this file.
@@ -32,6 +36,7 @@ Nothing planned for now...
 ## Virtues Last Reward
 * [x] PACK archive decompression
 * [x] LUA decompilation
+* [x] Debug menu
 * [x] Model Mesh Export
 * [x] Model Texture Export
 * [x] Model Bone Export

@@ -15,12 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-if [ -z "$1" ]; then
-    echo "Folder path to the extracted VLR files required"
-    exit 1
-fi
-INPUT=$(realpath "$1")
-
 # Go to script directory
 DIR="$(dirname -- "${BASH_SOURCE[0]}")"
 DIR="$(realpath -e -- "$DIR")"
@@ -32,7 +26,7 @@ mkdir workdir
 mkdir workdir/script_txt
 mkdir workdir/script_txt/ae
 
-unzip -o "${INPUT}/0-255/1-2119833045" -d workdir/
+unzip -o "workdir/ze2_data_en_us/0-255/1-2119833045" -d workdir/
 
 lua/vlr2luac.py workdir/script/cmd.lua /tmp/cmd.lua
 lua/dummyout.py /tmp/cmd.lua /tmp/cmd.lua.out 42

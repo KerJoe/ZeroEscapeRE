@@ -15,12 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-if [ -z "$1" ]; then
-    echo "File path to ze2_data_en_us.bin required"
-    exit 1
-fi
-INPUT=$(realpath "$1")
-
 # Go to script directory
 DIR="$(dirname -- "${BASH_SOURCE[0]}")"
 DIR="$(realpath -e -- "$DIR")"
@@ -34,8 +28,6 @@ mkdir workdir/converted_models
 mkdir workdir/converted_rooms
 mkdir workdir/extracted_models
 mkdir workdir/extracted_rooms
-
-bindot/unpacker.py "${INPUT}" workdir/ze2_data_en_us
 
 for FILE in $(find "workdir/ze2_data_en_us/13-781874508/" -type f); do
     if [[ $(head -c 4 "${FILE}") == 'PACK' ]]; then

@@ -16,25 +16,19 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 if [ -z "$1" ]; then
-    echo "Folder path to the extracted VLR scripts required"
-    exit 1
-fi
-INPUT=$(realpath "$1")
-
-if [ -z "$2" ]; then
     echo "File path to ze2_data_en_us.bin required"
     exit 1
 fi
-BINDOT=$(realpath "$2")
+BINDOT=$(realpath "$1")
 
-if [ -z "$3" ]; then
+if [ -z "$2" ]; then
     echo "Path to lua 5.1 x86 compiler required"
     exit 1
 fi
-if [ $(which $3) ]; then
-    LUAC=$(which $3)
+if [ $(which $2) ]; then
+    LUAC=$(which $2)
 else
-    LUAC=$(realpath $3)
+    LUAC=$(realpath $2)
 fi
 if [[ ! $(${LUAC} -v | grep "Lua 5.1") ]]; then
     echo "Bad version of lua compiler, expected 5.1"
@@ -78,4 +72,12 @@ done
 rm workdir/script.zip
 7z a workdir/script.zip workdir/script_bin
 7z rn workdir/script.zip workdir/script_bin script
-bindot/patch.py ${BINDOT} workdir/script.zip 2119833045
+
+echo
+echo "The \"${BINDOT}\" file will be modified. Are you sure you want to continue?"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) bindot/patch.py ${BINDOT} workdir/script.zip 2119833045; break ;;
+        No ) exit 0 ;;
+    esac
+done
