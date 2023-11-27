@@ -10,6 +10,7 @@ cd ZeroEscapeRE
 python3.10 -m venv .venv # NOTE: Blender python module from PyPi is only available for fixed versions of python (As of October 2023, it's version 3.10)
 source .venv/bin/activate
 pip install -r requirements.txt
+pip install -e `realpath helper`
 ```
 
 ## Model export
