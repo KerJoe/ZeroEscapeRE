@@ -1,4 +1,4 @@
-# Zero Escape: The Nonary Games / Reverse Engineering
+# Zero Escape: The Nonary Games / Resource Extractor
 
 This project aims to allow extracting resources from data files of the Zero Escape video game duology for PC.
 
@@ -44,3 +44,13 @@ Nothing planned for now...
 * [x] Model Facial Animation Export
 * [x] Room export
 * [ ] Room scene export
+
+## Demonstration videos
+
+### Character models with animations
+
+<a href="https://www.youtube.com/watch?v=CX-y9TbJF-g"><img src="https://img.youtube.com/vi/CX-y9TbJF-g/0.jpg" alt="Virtue's Last Reward: Animation Export" width="300"></a>
+
+### Debug mode
+
+<a href="https://www.youtube.com/watch?v=knTZV8UCogE"><img src="https://img.youtube.com/vi/knTZV8UCogE/0.jpg" alt="Virtue's Last Reward: Debug Menu" width="300"></a>
