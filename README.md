@@ -7,7 +7,7 @@ This project aims to allow extracting resources from data files of the Zero Esca
 ```
 git clone https://github.com/KerJoe/ZeroEscapeRE.git
 cd ZeroEscapeRE
-python3.10 -m venv .venv # NOTE: Blender python module from PyPi is only available for fixed versions of python (As of October 2023, it's version 3.10)
+python3.11 -m venv .venv # NOTE: Blender python module from PyPi is only available for fixed versions of python (As of October 2024, it's version 3.11)
 source .venv/bin/activate
 pip install -r requirements.txt
 pip install -e `realpath helper`
