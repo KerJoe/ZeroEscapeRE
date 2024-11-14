@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import struct, os, sys, importlib.util
+import struct, os, sys, re, importlib.util, magic
 from pathlib import Path
 from typing import Generator
 
@@ -68,6 +68,32 @@ def import_pyx(path: str, relative_to_file: str=None) -> object:
     spec.loader.exec_module(module)
 
     return module
+
+# Determine file extension from libmagic output.
+_mag = magic.Magic()
+# Load our definition of a PACK archive and the default database
+magic.magic_load(_mag.cookie, ':'.join([str(Path(__file__).parent/'pack.mgcs'), str(Path(__file__).parent/'magic.mgc')]))
+_magic_regex = {
+    'Targa image data .*': 'tga',
+    'Zip archive data .*': 'zip',
+    'C source, .*': 'c',
+    'Lua bytecode, .*': 'luac',
+    'Microsoft DirectDraw Surface .*': 'dds',
+    'PACK Archive': 'pack',
+    'Zip archive .*': 'zip',
+    'Ogg data, .*': 'ogg',
+    'RIFF \(.*\) data, AVI, .*': 'avi',
+    'XML .*': 'xml',
+    'ASCII text': 'txt',
+    'PNG .*': 'png',
+    'data': 'bin',
+    '.*': 'bin' # Last resort
+}
+def detect_extension(file_data: bytes|bytearray) -> str:
+    out = _mag.from_buffer(file_data)
+    for regex, ext in _magic_regex.items():
+        if re.match(regex, out):
+            return ext
 
 class AccUnpack:
     """ Like built-in struct.unpack, but with position tracking """

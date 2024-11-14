@@ -20,13 +20,15 @@ DIR="$(dirname -- "${BASH_SOURCE[0]}")"
 DIR="$(realpath -e -- "$DIR")"
 cd ${DIR}
 
+shopt -s extglob
+
 source .venv/bin/activate
 
 mkdir workdir
 mkdir workdir/script_txt
 mkdir workdir/script_txt/ae
 
-unzip -o "workdir/ze2_data_en_us/0-255/1-2119833045" -d workdir/
+unzip -o "workdir/ze2_data_en_us/0-255/1-2119833045"?(.zip) -d workdir/
 
 lua/vlr2luac.py workdir/script/cmd.lua /tmp/cmd.lua
 lua/dummyout.py /tmp/cmd.lua /tmp/cmd.lua.out 42

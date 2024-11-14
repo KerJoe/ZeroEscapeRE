@@ -26,6 +26,7 @@ parser.add_argument('input_bindot', type=Path, help='Zero Escape .bin resource f
 parser.add_argument('output_directory', type=Path, help='Directory path of extraction location')
 parser.add_argument('-k', '--key', type=int, help='Decryption key, if not specified will be auto detected')
 parser.add_argument('-f', '--flat', action='store_true', help='Don\'t create directories, extract every file into root')
+parser.add_argument('-e', '--extensions', action='store_true', help='Add autodetected extensions to filenames')
 args = parser.parse_args()
 
 
@@ -47,8 +48,10 @@ with try_open(args.input_bindot, 'rb') as fi:
 
         for file_count, file in enumerate(directory.files):
             file_path = directory_path/f'{abs_file_count}-{file.name_hash}'
-            with try_open(file_path, 'wb') as fo:
-                fo.write(bin_dot.read(fi, file))
+            buffer = bin_dot.read(fi, file)
+            file_type = detect_extension(buffer)
+            with try_open(file_path.with_suffix((f'.{file_type}' if args.extensions else '')), 'wb') as fo:
+                fo.write(buffer)
 
             abs_file_count += 1
-            print(f'Extracted file {file_count+1}/{len(directory.files)}, in directory {directory_count+1}/{len(bin_dot.directories)}')
+            print(f'Extracted file {file_count+1}/{len(directory.files)}, in directory {directory_count+1}/{len(bin_dot.directories)}, detected file type "{file_type}"')

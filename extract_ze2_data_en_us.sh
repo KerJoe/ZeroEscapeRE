@@ -31,4 +31,4 @@ source .venv/bin/activate
 mkdir workdir
 mkdir workdir/ze2_data_en_us
 
-bindot/unpacker.py "${INPUT}" workdir/ze2_data_en_us
+bindot/unpacker.py -e "${INPUT}" workdir/ze2_data_en_us
